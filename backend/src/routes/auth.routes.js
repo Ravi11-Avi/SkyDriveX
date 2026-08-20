@@ -1,0 +1,68 @@
+const express = require("express");
+const passport = require("passport");
+const router = express.Router();
+const {
+  register,
+  login,
+  refreshToken,
+  logout,
+  getMe,
+  oauthSuccess,
+} = require("../controllers/auth.controller");
+const { validateRegister, validateLogin } = require("../validators/auth.validator");
+const { protect } = require("../middleware/auth.middleware");
+
+// Local Auth Routes
+router.post("/register", validateRegister, register);
+router.post("/login", validateLogin, login);
+router.post("/refresh", refreshToken);
+router.post("/logout", logout);
+
+// Protected Profiles Route
+router.get("/me", protect, getMe);
+
+// Google OAuth Routes
+router.get(
+  "/google",
+  passport.authenticate("google", {
+    scope: ["profile", "email"],
+    session: false,
+  })
+);
+
+router.get(
+  "/google/callback",
+  passport.authenticate("google", {
+    session: false,
+    failureRedirect: "/api/v1/auth/login-failure", // Redirect or handle failure
+  }),
+  oauthSuccess
+);
+
+// GitHub OAuth Routes
+router.get(
+  "/github",
+  passport.authenticate("github", {
+    scope: ["user:email"],
+    session: false,
+  })
+);
+
+router.get(
+  "/github/callback",
+  passport.authenticate("github", {
+    session: false,
+    failureRedirect: "/api/v1/auth/login-failure",
+  }),
+  oauthSuccess
+);
+
+// Fallback failure route
+router.get("/login-failure", (req, res) => {
+  res.status(401).json({
+    success: false,
+    message: "OAuth login failed. Please try again.",
+  });
+});
+
+module.exports = router;
