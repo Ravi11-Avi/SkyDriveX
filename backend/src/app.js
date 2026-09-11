@@ -40,12 +40,20 @@ app.use(passport.initialize());
 // 3. Register Routes
 const healthRoutes = require("./routes/health.routes");
 const authRoutes = require("./routes/auth.routes");
+const folderRoutes = require("./routes/folder.routes");
+const fileRoutes = require("./routes/file.routes");
+const trashRoutes = require("./routes/trash.routes");
+const storageRoutes = require("./routes/storage.routes");
 
 app.use("/api/v1", healthRoutes);
 app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/folders", folderRoutes);
+app.use("/api/v1/files", fileRoutes);
+app.use("/api/v1/trash", trashRoutes);
+app.use("/api/v1/storage", storageRoutes);
 
 // 4. Handle undefined routes
-app.all("*", (req, res, next) => {
+app.use((req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
 });
 
