@@ -2,6 +2,7 @@ const Folder = require("../models/folder.model");
 const File = require("../models/file.model");
 const AppError = require("../utils/appError");
 const { deleteMultipleFilesFromS3 } = require("../services/s3.service");
+const { logActivity } = require("../services/activity.service");
 
 /**
  * Create a new folder
@@ -52,6 +53,16 @@ const createFolder = async (req, res, next) => {
       parentFolder: parentFolder || null,
       path,
       color: color || "#4F46E5",
+    });
+
+    logActivity({
+      user: userId,
+      action: "FOLDER_CREATE",
+      itemType: "folder",
+      itemId: folder._id,
+      itemName: folder.name,
+      details: { parentFolder: folder.parentFolder, color: folder.color },
+      req,
     });
 
     res.status(201).json({
@@ -185,6 +196,8 @@ const updateFolder = async (req, res, next) => {
       return next(new AppError("Folder not found", 404));
     }
 
+    const oldName = folder.name;
+
     // If renaming, check for conflict in the same directory
     if (name && name.trim() !== folder.name) {
       const duplicate = await Folder.findOne({
@@ -201,7 +214,6 @@ const updateFolder = async (req, res, next) => {
         );
       }
 
-      const oldName = folder.name;
       folder.name = name.trim();
 
       // Update name inside descendant folders' path arrays
@@ -210,6 +222,16 @@ const updateFolder = async (req, res, next) => {
         { $set: { "path.$[elem].name": folder.name } },
         { arrayFilters: [{ "elem._id": folder._id }] }
       );
+
+      logActivity({
+        user: userId,
+        action: "FOLDER_RENAME",
+        itemType: "folder",
+        itemId: folder._id,
+        itemName: folder.name,
+        details: { oldName, newName: folder.name },
+        req,
+      });
     }
 
     if (color !== undefined) folder.color = color;
@@ -299,7 +321,7 @@ const moveFolder = async (req, res, next) => {
       );
     }
 
-    const oldPathLength = folder.path.length;
+    const previousParent = folder.parentFolder;
     folder.parentFolder = newParentId;
     folder.path = newPath;
     await folder.save();
@@ -311,7 +333,6 @@ const moveFolder = async (req, res, next) => {
     });
 
     for (const desc of descendants) {
-      // Replace the prefix up to folder._id with newPath + folder
       const folderIndexInPath = desc.path.findIndex(
         (p) => p._id.toString() === folder._id.toString()
       );
@@ -323,6 +344,16 @@ const moveFolder = async (req, res, next) => {
       ];
       await desc.save();
     }
+
+    logActivity({
+      user: userId,
+      action: "FOLDER_MOVE",
+      itemType: "folder",
+      itemId: folder._id,
+      itemName: folder.name,
+      details: { previousParent, targetParent: newParentId },
+      req,
+    });
 
     res.status(200).json({
       success: true,
@@ -377,6 +408,16 @@ const trashFolder = async (req, res, next) => {
       { user: userId, folder: { $in: allFolderIds } },
       { $set: { isTrash: true, trashedAt: now } }
     );
+
+    logActivity({
+      user: userId,
+      action: "FOLDER_TRASH",
+      itemType: "folder",
+      itemId: folder._id,
+      itemName: folder.name,
+      details: { affectedFoldersCount: allFolderIds.length },
+      req,
+    });
 
     res.status(200).json({
       success: true,
@@ -441,6 +482,15 @@ const restoreFolder = async (req, res, next) => {
       { $set: { isTrash: false, trashedAt: null } }
     );
 
+    logActivity({
+      user: userId,
+      action: "FOLDER_RESTORE",
+      itemType: "folder",
+      itemId: folder._id,
+      itemName: folder.name,
+      req,
+    });
+
     res.status(200).json({
       success: true,
       message: "Folder and its contents restored successfully",
@@ -496,6 +546,16 @@ const deleteFolderPermanently = async (req, res, next) => {
     // 5. Delete all folders from MongoDB
     await Folder.deleteMany({
       _id: { $in: allFolderIds },
+    });
+
+    logActivity({
+      user: userId,
+      action: "FOLDER_DELETE_PERMANENT",
+      itemType: "folder",
+      itemId: folder._id,
+      itemName: folder.name,
+      details: { deletedFoldersCount: allFolderIds.length, deletedFilesCount: files.length },
+      req,
     });
 
     res.status(200).json({

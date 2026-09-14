@@ -10,6 +10,7 @@ const {
   deleteFileFromS3,
 } = require("../services/s3.service");
 const { getFileCategory } = require("../helpers/fileCategory.helper");
+const { logActivity } = require("../services/activity.service");
 
 /**
  * Upload single or multiple files
@@ -70,6 +71,21 @@ const uploadFiles = async (req, res, next) => {
       });
 
       uploadedFiles.push(fileDoc);
+
+      // Log activity
+      logActivity({
+        user: userId,
+        action: "FILE_UPLOAD",
+        itemType: "file",
+        itemId: fileDoc._id,
+        itemName: fileDoc.name,
+        details: {
+          size: fileDoc.size,
+          category: fileDoc.category,
+          folder: targetFolderId,
+        },
+        req,
+      });
     }
 
     res.status(201).json({
@@ -202,6 +218,15 @@ const getDownloadUrl = async (req, res, next) => {
 
     const downloadUrl = await getPresignedDownloadUrl(file.s3Key, file.originalName);
 
+    logActivity({
+      user: userId,
+      action: "FILE_DOWNLOAD",
+      itemType: "file",
+      itemId: file._id,
+      itemName: file.name,
+      req,
+    });
+
     res.status(200).json({
       success: true,
       fileName: file.originalName,
@@ -260,11 +285,24 @@ const updateFile = async (req, res, next) => {
       return next(new AppError("File not found", 404));
     }
 
+    const oldName = file.name;
     if (name !== undefined) file.name = name.trim();
     if (isFavorite !== undefined) file.isFavorite = isFavorite;
     if (tags !== undefined) file.tags = tags;
 
     await file.save();
+
+    if (name && name.trim() !== oldName) {
+      logActivity({
+        user: userId,
+        action: "FILE_RENAME",
+        itemType: "file",
+        itemId: file._id,
+        itemName: file.name,
+        details: { oldName, newName: file.name },
+        req,
+      });
+    }
 
     res.status(200).json({
       success: true,
@@ -310,8 +348,19 @@ const moveFile = async (req, res, next) => {
       newFolderId = destinationFolder._id;
     }
 
+    const previousFolder = file.folder;
     file.folder = newFolderId;
     await file.save();
+
+    logActivity({
+      user: userId,
+      action: "FILE_MOVE",
+      itemType: "file",
+      itemId: file._id,
+      itemName: file.name,
+      details: { previousFolder, targetFolder: newFolderId },
+      req,
+    });
 
     res.status(200).json({
       success: true,
@@ -344,6 +393,15 @@ const trashFile = async (req, res, next) => {
     file.isTrash = true;
     file.trashedAt = new Date();
     await file.save();
+
+    logActivity({
+      user: userId,
+      action: "FILE_TRASH",
+      itemType: "file",
+      itemId: file._id,
+      itemName: file.name,
+      req,
+    });
 
     res.status(200).json({
       success: true,
@@ -389,6 +447,15 @@ const restoreFile = async (req, res, next) => {
     file.trashedAt = null;
     await file.save();
 
+    logActivity({
+      user: userId,
+      action: "FILE_RESTORE",
+      itemType: "file",
+      itemId: file._id,
+      itemName: file.name,
+      req,
+    });
+
     res.status(200).json({
       success: true,
       message: "File restored successfully",
@@ -423,6 +490,15 @@ const deleteFilePermanently = async (req, res, next) => {
 
     // 2. Delete from MongoDB
     await File.findByIdAndDelete(file._id);
+
+    logActivity({
+      user: userId,
+      action: "FILE_DELETE_PERMANENT",
+      itemType: "file",
+      itemId: file._id,
+      itemName: file.name,
+      req,
+    });
 
     res.status(200).json({
       success: true,

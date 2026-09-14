@@ -44,6 +44,8 @@ const folderRoutes = require("./routes/folder.routes");
 const fileRoutes = require("./routes/file.routes");
 const trashRoutes = require("./routes/trash.routes");
 const storageRoutes = require("./routes/storage.routes");
+const shareRoutes = require("./routes/share.routes");
+const activityRoutes = require("./routes/activity.routes");
 
 app.use("/api/v1", healthRoutes);
 app.use("/api/v1/auth", authRoutes);
@@ -51,6 +53,8 @@ app.use("/api/v1/folders", folderRoutes);
 app.use("/api/v1/files", fileRoutes);
 app.use("/api/v1/trash", trashRoutes);
 app.use("/api/v1/storage", storageRoutes);
+app.use("/api/v1/shares", shareRoutes);
+app.use("/api/v1/activities", activityRoutes);
 
 // 4. Handle undefined routes
 app.use((req, res, next) => {
