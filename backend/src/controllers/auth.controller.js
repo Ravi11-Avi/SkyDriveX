@@ -209,6 +209,92 @@ const oauthSuccess = (req, res) => {
   res.redirect(`${frontendUrl}/oauth-success?token=${accessToken}`);
 };
 
+const crypto = require("crypto");
+const { sendPasswordResetEmail } = require("../services/email.service");
+
+/**
+ * Request password reset link
+ */
+const forgotPassword = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      // Don't leak whether a user exists
+      return res.status(200).json({
+        success: true,
+        message: "If an account with that email exists, a password reset link has been sent.",
+      });
+    }
+
+    // Generate reset token
+    const resetToken = user.createPasswordResetToken();
+    await user.save({ validateBeforeSave: false });
+
+    // Build reset URL
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+    const resetUrl = `${frontendUrl}/reset-password/${resetToken}`;
+
+    try {
+      await sendPasswordResetEmail({
+        to: user.email,
+        name: user.name,
+        resetUrl,
+      });
+
+      res.status(200).json({
+        success: true,
+        message: "If an account with that email exists, a password reset link has been sent.",
+      });
+    } catch (err) {
+      user.passwordResetToken = undefined;
+      user.passwordResetExpires = undefined;
+      await user.save({ validateBeforeSave: false });
+
+      return next(new AppError("There was an error sending the reset email. Please try again later.", 500));
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Reset password using valid token
+ */
+const resetPassword = async (req, res, next) => {
+  try {
+    const { token } = req.params;
+    const { password } = req.body;
+
+    // Hash raw token from URL to compare with hashed token in DB
+    const hashedToken = crypto
+      .createHash("sha256")
+      .update(token)
+      .digest("hex");
+
+    const user = await User.findOne({
+      passwordResetToken: hashedToken,
+      passwordResetExpires: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return next(new AppError("Token is invalid or has expired", 400));
+    }
+
+    // Set new password
+    user.password = password;
+    user.passwordResetToken = undefined;
+    user.passwordResetExpires = undefined;
+    await user.save();
+
+    // Log the user in with new tokens
+    sendTokenResponse(user, 200, res);
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   register,
   login,
@@ -216,4 +302,6 @@ module.exports = {
   logout,
   getMe,
   oauthSuccess,
+  forgotPassword,
+  resetPassword,
 };

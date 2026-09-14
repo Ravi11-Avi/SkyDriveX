@@ -16,12 +16,13 @@ const {
   validateUpdateShare,
   validateVerifyPassword,
 } = require("../validators/share.validator");
+const { shareVerifyLimiter } = require("../middleware/rateLimit.middleware");
 
 // ==========================================
 // Public Endpoints (Accessible by Guests/Recipients)
 // ==========================================
 router.get("/public/:token", getPublicShare);
-router.post("/public/:token/verify", validateVerifyPassword, verifyPublicSharePassword);
+router.post("/public/:token/verify", shareVerifyLimiter, validateVerifyPassword, verifyPublicSharePassword);
 router.get("/public/:token/download", downloadSharedFile);
 router.get("/public/:token/view", viewSharedFile);
 

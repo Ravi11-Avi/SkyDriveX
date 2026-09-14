@@ -53,7 +53,34 @@ const validateLogin = [
   validateResults,
 ];
 
+/**
+ * Forgot password validation rules
+ */
+const validateForgotPassword = [
+  body("email")
+    .trim()
+    .notEmpty()
+    .withMessage("Email is required")
+    .isEmail()
+    .withMessage("Please provide a valid email address"),
+  validateResults,
+];
+
+/**
+ * Reset password validation rules
+ */
+const validateResetPassword = [
+  body("password")
+    .notEmpty()
+    .withMessage("New password is required")
+    .isLength({ min: 6 })
+    .withMessage("Password must be at least 6 characters long"),
+  validateResults,
+];
+
 module.exports = {
   validateRegister,
   validateLogin,
+  validateForgotPassword,
+  validateResetPassword,
 };

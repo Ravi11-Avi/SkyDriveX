@@ -8,15 +8,25 @@ const {
   logout,
   getMe,
   oauthSuccess,
+  forgotPassword,
+  resetPassword,
 } = require("../controllers/auth.controller");
-const { validateRegister, validateLogin } = require("../validators/auth.validator");
+const {
+  validateRegister,
+  validateLogin,
+  validateForgotPassword,
+  validateResetPassword,
+} = require("../validators/auth.validator");
 const { protect } = require("../middleware/auth.middleware");
+const { authLimiter } = require("../middleware/rateLimit.middleware");
 
-// Local Auth Routes
-router.post("/register", validateRegister, register);
-router.post("/login", validateLogin, login);
+// Local Auth Routes (with rate limiter on sensitive endpoints)
+router.post("/register", authLimiter, validateRegister, register);
+router.post("/login", authLimiter, validateLogin, login);
 router.post("/refresh", refreshToken);
 router.post("/logout", logout);
+router.post("/forgot-password", authLimiter, validateForgotPassword, forgotPassword);
+router.patch("/reset-password/:token", authLimiter, validateResetPassword, resetPassword);
 
 // Protected Profiles Route
 router.get("/me", protect, getMe);
