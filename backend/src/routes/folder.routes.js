@@ -9,6 +9,7 @@ const {
   trashFolder,
   restoreFolder,
   deleteFolderPermanently,
+  downloadFolderAsZip,
 } = require("../controllers/folder.controller");
 const { protect } = require("../middleware/auth.middleware");
 const {
@@ -23,6 +24,7 @@ router.use(protect);
 router.post("/", validateCreateFolder, createFolder);
 router.get("/", getFolderContents);
 router.get("/:id", getFolderById);
+router.get("/:id/download", downloadFolderAsZip);
 router.patch("/:id", validateUpdateFolder, updateFolder);
 router.patch("/:id/move", validateMoveFolder, moveFolder);
 router.delete("/:id", trashFolder);

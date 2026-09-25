@@ -7,6 +7,9 @@ const {
   refreshToken,
   logout,
   getMe,
+  updateProfile,
+  changePassword,
+  deleteAccount,
   oauthSuccess,
   forgotPassword,
   resetPassword,
@@ -16,6 +19,8 @@ const {
   validateLogin,
   validateForgotPassword,
   validateResetPassword,
+  validateUpdateProfile,
+  validateChangePassword,
 } = require("../validators/auth.validator");
 const { protect } = require("../middleware/auth.middleware");
 const { authLimiter } = require("../middleware/rateLimit.middleware");
@@ -28,8 +33,11 @@ router.post("/logout", logout);
 router.post("/forgot-password", authLimiter, validateForgotPassword, forgotPassword);
 router.patch("/reset-password/:token", authLimiter, validateResetPassword, resetPassword);
 
-// Protected Profiles Route
+// Protected User & Profile Routes
 router.get("/me", protect, getMe);
+router.patch("/profile", protect, validateUpdateProfile, updateProfile);
+router.patch("/change-password", protect, validateChangePassword, changePassword);
+router.delete("/account", protect, deleteAccount);
 
 // Google OAuth Routes
 router.get(

@@ -78,9 +78,45 @@ const validateResetPassword = [
   validateResults,
 ];
 
+/**
+ * Update profile validation rules
+ */
+const validateUpdateProfile = [
+  body("name")
+    .optional()
+    .trim()
+    .notEmpty()
+    .withMessage("Name cannot be empty")
+    .isLength({ min: 2, max: 50 })
+    .withMessage("Name must be between 2 and 50 characters"),
+  body("avatar")
+    .optional({ nullable: true })
+    .trim()
+    .isString()
+    .withMessage("Avatar must be a valid URL string"),
+  validateResults,
+];
+
+/**
+ * Change password validation rules
+ */
+const validateChangePassword = [
+  body("currentPassword")
+    .notEmpty()
+    .withMessage("Current password is required"),
+  body("newPassword")
+    .notEmpty()
+    .withMessage("New password is required")
+    .isLength({ min: 6 })
+    .withMessage("New password must be at least 6 characters long"),
+  validateResults,
+];
+
 module.exports = {
   validateRegister,
   validateLogin,
   validateForgotPassword,
   validateResetPassword,
+  validateUpdateProfile,
+  validateChangePassword,
 };

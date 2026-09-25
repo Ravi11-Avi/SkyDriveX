@@ -17,7 +17,7 @@ const getStorageSummary = async (req, res, next) => {
     const categoryAggregation = await File.aggregate([
       {
         $match: {
-          user: new mongoose.Types.ObjectId(userId),
+          user: new mongoose.Types.ObjectId(userId.toString()),
           isTrash: false,
         },
       },
@@ -34,7 +34,7 @@ const getStorageSummary = async (req, res, next) => {
     const trashAggregation = await File.aggregate([
       {
         $match: {
-          user: new mongoose.Types.ObjectId(userId),
+          user: new mongoose.Types.ObjectId(userId.toString()),
           isTrash: true,
         },
       },

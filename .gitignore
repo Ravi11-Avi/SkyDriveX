@@ -6,3 +6,5 @@ coverage
 .idea
 logs
 *.log
+uploads
+backend/uploads

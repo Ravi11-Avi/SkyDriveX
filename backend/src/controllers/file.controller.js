@@ -1,4 +1,6 @@
 const path = require("path");
+const fs = require("fs");
+const mongoose = require("mongoose");
 const { v4: uuidv4 } = require("uuid");
 const File = require("../models/file.model");
 const Folder = require("../models/folder.model");
@@ -8,9 +10,12 @@ const {
   getPresignedDownloadUrl,
   getPresignedViewUrl,
   deleteFileFromS3,
+  deleteMultipleFilesFromS3,
+  LOCAL_STORAGE_DIR,
 } = require("../services/s3.service");
 const { getFileCategory } = require("../helpers/fileCategory.helper");
 const { logActivity } = require("../services/activity.service");
+const { DEFAULT_STORAGE_QUOTA } = require("../constants");
 
 /**
  * Upload single or multiple files
@@ -26,7 +31,38 @@ const uploadFiles = async (req, res, next) => {
       return next(new AppError("Please provide at least one file to upload", 400));
     }
 
-    // Verify folder if provided
+    // 1. Storage Quota Check
+    const maxQuota = parseInt(process.env.STORAGE_QUOTA_BYTES || DEFAULT_STORAGE_QUOTA, 10);
+    const currentUsageAgg = await File.aggregate([
+      {
+        $match: {
+          user: new mongoose.Types.ObjectId(userId.toString()),
+          isTrash: false,
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          totalUsed: { $sum: "$size" },
+        },
+      },
+    ]);
+    const currentUsed = currentUsageAgg.length > 0 ? currentUsageAgg[0].totalUsed : 0;
+    const incomingBatchSize = rawFiles.reduce((acc, f) => acc + (f.size || 0), 0);
+
+    if (currentUsed + incomingBatchSize > maxQuota) {
+      const remainingBytes = Math.max(0, maxQuota - currentUsed);
+      const remainingMB = (remainingBytes / (1024 * 1024)).toFixed(2);
+      const incomingMB = (incomingBatchSize / (1024 * 1024)).toFixed(2);
+      return next(
+        new AppError(
+          `Storage quota exceeded. Available: ${remainingMB} MB, Upload requires: ${incomingMB} MB.`,
+          400
+        )
+      );
+    }
+
+    // 2. Verify folder if provided
     let folderDoc = null;
     let targetFolderId = null;
 
@@ -50,13 +86,13 @@ const uploadFiles = async (req, res, next) => {
       const sanitizedName = file.originalname.replace(/[^a-zA-Z0-9._-]/g, "_");
       const s3Key = `users/${userId}/${Date.now()}-${uuidv4()}-${sanitizedName}`;
 
-      // 1. Upload to AWS S3
+      // Upload to AWS S3 (or local fallback)
       const { s3Url } = await uploadFileToS3(file.buffer, s3Key, file.mimetype);
 
-      // 2. Determine Category
+      // Determine Category
       const category = getFileCategory(file.mimetype, file.originalname);
 
-      // 3. Save File Document in MongoDB
+      // Save File Document in MongoDB
       const fileDoc = await File.create({
         name: file.originalname,
         originalName: file.originalname,
@@ -509,15 +545,200 @@ const deleteFilePermanently = async (req, res, next) => {
   }
 };
 
+/**
+ * Stream local file for viewing or downloading (Local storage mode)
+ */
+const streamLocalFile = async (req, res, next) => {
+  try {
+    const rawKeyParam = Array.isArray(req.params.key)
+      ? req.params.key.join("/")
+      : (req.params.key || req.params[0] || "");
+    const rawKey = decodeURIComponent(rawKeyParam);
+    const { download, name } = req.query;
+
+    const baseDir = path.resolve(LOCAL_STORAGE_DIR);
+    const localFilePath = path.resolve(baseDir, rawKey);
+
+    // Prevent directory traversal attacks
+    if (!localFilePath.startsWith(baseDir)) {
+      return next(new AppError("Invalid file path", 403));
+    }
+
+    if (!fs.existsSync(localFilePath)) {
+      return next(new AppError("File not found on storage server", 404));
+    }
+
+    if (download === "true") {
+      const filename = name || path.basename(localFilePath);
+      return res.download(localFilePath, filename);
+    }
+
+    // Direct streaming for preview
+    res.sendFile(localFilePath);
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Batch Move multiple files to Trash
+ */
+const batchTrashFiles = async (req, res, next) => {
+  try {
+    const { fileIds } = req.body;
+    const userId = req.user._id;
+
+    const result = await File.updateMany(
+      { _id: { $in: fileIds }, user: userId, isTrash: false },
+      { $set: { isTrash: true, trashedAt: new Date() } }
+    );
+
+    logActivity({
+      user: userId,
+      action: "FILE_TRASH",
+      itemType: "file",
+      itemName: `Batch trash ${result.modifiedCount} files`,
+      details: { count: result.modifiedCount, fileIds },
+      req,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: `${result.modifiedCount} file(s) moved to Trash`,
+      count: result.modifiedCount,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Batch Restore multiple files from Trash
+ */
+const batchRestoreFiles = async (req, res, next) => {
+  try {
+    const { fileIds } = req.body;
+    const userId = req.user._id;
+
+    const result = await File.updateMany(
+      { _id: { $in: fileIds }, user: userId, isTrash: true },
+      { $set: { isTrash: false, trashedAt: null } }
+    );
+
+    logActivity({
+      user: userId,
+      action: "FILE_RESTORE",
+      itemType: "file",
+      itemName: `Batch restore ${result.modifiedCount} files`,
+      details: { count: result.modifiedCount, fileIds },
+      req,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: `${result.modifiedCount} file(s) restored from Trash`,
+      count: result.modifiedCount,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Batch Permanently Delete files
+ */
+const batchDeleteFiles = async (req, res, next) => {
+  try {
+    const { fileIds } = req.body;
+    const userId = req.user._id;
+
+    const files = await File.find({ _id: { $in: fileIds }, user: userId });
+    const s3Keys = files.map((f) => f.s3Key).filter(Boolean);
+
+    if (s3Keys.length > 0) {
+      await deleteMultipleFilesFromS3(s3Keys);
+    }
+
+    const result = await File.deleteMany({ _id: { $in: fileIds }, user: userId });
+
+    logActivity({
+      user: userId,
+      action: "FILE_DELETE_PERMANENT",
+      itemType: "file",
+      itemName: `Batch permanent delete ${result.deletedCount} files`,
+      details: { count: result.deletedCount, fileIds },
+      req,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: `${result.deletedCount} file(s) deleted permanently`,
+      count: result.deletedCount,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Batch Move files to a destination folder
+ */
+const batchMoveFiles = async (req, res, next) => {
+  try {
+    const { fileIds, targetFolderId } = req.body;
+    const userId = req.user._id;
+
+    let destinationFolderId = null;
+    if (targetFolderId && targetFolderId !== "root" && targetFolderId !== "null") {
+      const folderDoc = await Folder.findOne({
+        _id: targetFolderId,
+        user: userId,
+        isTrash: false,
+      });
+      if (!folderDoc) {
+        return next(new AppError("Target folder not found", 404));
+      }
+      destinationFolderId = folderDoc._id;
+    }
+
+    const result = await File.updateMany(
+      { _id: { $in: fileIds }, user: userId, isTrash: false },
+      { $set: { folder: destinationFolderId } }
+    );
+
+    logActivity({
+      user: userId,
+      action: "FILE_MOVE",
+      itemType: "file",
+      itemName: `Batch move ${result.modifiedCount} files`,
+      details: { targetFolderId: destinationFolderId, count: result.modifiedCount },
+      req,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: `${result.modifiedCount} file(s) moved successfully`,
+      count: result.modifiedCount,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   uploadFiles,
   getFiles,
   getFileById,
   getDownloadUrl,
   getViewUrl,
+  streamLocalFile,
   updateFile,
   moveFile,
   trashFile,
   restoreFile,
   deleteFilePermanently,
+  batchTrashFiles,
+  batchRestoreFiles,
+  batchDeleteFiles,
+  batchMoveFiles,
 };

@@ -1,7 +1,8 @@
+const archiver = require("archiver");
 const Folder = require("../models/folder.model");
 const File = require("../models/file.model");
 const AppError = require("../utils/appError");
-const { deleteMultipleFilesFromS3 } = require("../services/s3.service");
+const { deleteMultipleFilesFromS3, getFileStream } = require("../services/s3.service");
 const { logActivity } = require("../services/activity.service");
 
 /**
@@ -567,6 +568,103 @@ const deleteFolderPermanently = async (req, res, next) => {
   }
 };
 
+/**
+ * Download an entire folder and its nested subfolders/files as a ZIP archive
+ */
+const downloadFolderAsZip = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user._id;
+
+    const rootFolder = await Folder.findOne({
+      _id: id,
+      user: userId,
+      isTrash: false,
+    });
+
+    if (!rootFolder) {
+      return next(new AppError("Folder not found", 404));
+    }
+
+    // 1. Find all descendant subfolders
+    const descendantFolders = await Folder.find({
+      user: userId,
+      "path._id": rootFolder._id,
+      isTrash: false,
+    });
+
+    const allFolders = [rootFolder, ...descendantFolders];
+    const folderIdMap = new Map();
+
+    // Map each folder to its relative path in the ZIP
+    for (const f of allFolders) {
+      if (f._id.toString() === rootFolder._id.toString()) {
+        folderIdMap.set(f._id.toString(), rootFolder.name);
+      } else {
+        const rootIndex = f.path.findIndex((p) => p._id.toString() === rootFolder._id.toString());
+        const subPathSegments = f.path.slice(rootIndex + 1).map((p) => p.name);
+        const fullRelPath = [rootFolder.name, ...subPathSegments, f.name].join("/");
+        folderIdMap.set(f._id.toString(), fullRelPath);
+      }
+    }
+
+    const allFolderIds = allFolders.map((f) => f._id);
+
+    // 2. Find all non-trashed files in these folders
+    const files = await File.find({
+      user: userId,
+      folder: { $in: allFolderIds },
+      isTrash: false,
+    });
+
+    // 3. Initialize Archiver ZIP stream
+    const archive = archiver("zip", {
+      zlib: { level: 6 },
+    });
+
+    const safeZipName = `${rootFolder.name.replace(/[^a-zA-Z0-9._-]/g, "_")}.zip`;
+    res.attachment(safeZipName);
+    res.setHeader("Content-Type", "application/zip");
+
+    archive.on("error", (err) => {
+      console.error("Archive ZIP error:", err);
+      if (!res.headersSent) {
+        res.status(500).json({ success: false, message: "Could not generate ZIP archive" });
+      }
+    });
+
+    archive.pipe(res);
+
+    // 4. Add each file stream to the archive
+    for (const file of files) {
+      const folderRelativePath =
+        folderIdMap.get(file.folder ? file.folder.toString() : rootFolder._id.toString()) ||
+        rootFolder.name;
+      const entryName = `${folderRelativePath}/${file.name}`;
+      try {
+        const stream = await getFileStream(file.s3Key);
+        archive.append(stream, { name: entryName });
+      } catch (err) {
+        console.warn(`Skipping missing file in ZIP: ${file.name}`, err.message);
+      }
+    }
+
+    logActivity({
+      user: userId,
+      action: "FOLDER_DOWNLOAD",
+      itemType: "folder",
+      itemId: rootFolder._id,
+      itemName: rootFolder.name,
+      details: { filesCount: files.length, foldersCount: allFolders.length, zipName: safeZipName },
+      req,
+    });
+
+    await archive.finalize();
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   createFolder,
   getFolderContents,
@@ -576,4 +674,5 @@ module.exports = {
   trashFolder,
   restoreFolder,
   deleteFolderPermanently,
+  downloadFolderAsZip,
 };

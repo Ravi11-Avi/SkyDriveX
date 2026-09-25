@@ -203,7 +203,7 @@ const oauthSuccess = (req, res) => {
     maxAge: 15 * 60 * 1000,
   });
 
-  const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+  const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
 
   // Redirect to frontend (e.g. dashboard page or callback landing page)
   res.redirect(`${frontendUrl}/oauth-success?token=${accessToken}`);
@@ -211,6 +211,132 @@ const oauthSuccess = (req, res) => {
 
 const crypto = require("crypto");
 const { sendPasswordResetEmail } = require("../services/email.service");
+const File = require("../models/file.model");
+const Folder = require("../models/folder.model");
+const Share = require("../models/share.model");
+const Activity = require("../models/activity.model");
+const { deleteMultipleFiles } = require("../services/storage.service");
+const { logActivity } = require("../services/activity.service");
+
+/**
+ * Update current user's profile (name, avatar)
+ */
+const updateProfile = async (req, res, next) => {
+  try {
+    const { name, avatar } = req.body;
+    const userId = req.user._id;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return next(new AppError("User not found", 404));
+    }
+
+    if (name !== undefined) user.name = name.trim();
+    if (avatar !== undefined) user.avatar = avatar ? avatar.trim() : null;
+
+    await user.save();
+
+    logActivity({
+      user: userId,
+      action: "PROFILE_UPDATE",
+      itemType: "user",
+      itemId: user._id,
+      itemName: user.name,
+      req,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Profile updated successfully",
+      user,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Change current user password (Authenticated)
+ */
+const changePassword = async (req, res, next) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const userId = req.user._id;
+
+    const user = await User.findById(userId).select("+password");
+    if (!user) {
+      return next(new AppError("User not found", 404));
+    }
+
+    if (user.authProvider !== "local" && !user.password) {
+      return next(
+        new AppError(
+          `This account was registered using ${user.authProvider}. Password changes are only for local accounts.`,
+          400
+        )
+      );
+    }
+
+    const isMatch = await user.comparePassword(currentPassword);
+    if (!isMatch) {
+      return next(new AppError("Current password is incorrect", 401));
+    }
+
+    user.password = newPassword;
+    await user.save();
+
+    logActivity({
+      user: userId,
+      action: "PASSWORD_CHANGE",
+      itemType: "user",
+      itemId: user._id,
+      itemName: user.name,
+      req,
+    });
+
+    sendTokenResponse(user, 200, res);
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Permanently delete user account and all associated data (Files in S3, Folders, Shares, Logs)
+ */
+const deleteAccount = async (req, res, next) => {
+  try {
+    const userId = req.user._id;
+
+    // 1. Find all files belonging to user
+    const files = await File.find({ user: userId });
+    const s3Keys = files.map((f) => f.s3Key).filter(Boolean);
+
+    // 2. Delete all files from storage (S3 / local disk)
+    if (s3Keys.length > 0) {
+      await deleteMultipleFiles(s3Keys);
+    }
+
+    // 3. Delete database records
+    await Promise.all([
+      File.deleteMany({ user: userId }),
+      Folder.deleteMany({ user: userId }),
+      Share.deleteMany({ user: userId }),
+      Activity.deleteMany({ user: userId }),
+      User.findByIdAndDelete(userId),
+    ]);
+
+    // 4. Clear cookies
+    res.clearCookie("refreshToken");
+    res.clearCookie("accessToken");
+
+    res.status(200).json({
+      success: true,
+      message: "Your account and all associated data have been permanently deleted.",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
 /**
  * Request password reset link
@@ -301,6 +427,9 @@ module.exports = {
   refreshToken,
   logout,
   getMe,
+  updateProfile,
+  changePassword,
+  deleteAccount,
   oauthSuccess,
   forgotPassword,
   resetPassword,

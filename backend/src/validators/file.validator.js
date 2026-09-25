@@ -47,7 +47,37 @@ const validateMoveFile = [
   validateResults,
 ];
 
+const validateBatchFiles = [
+  body("fileIds")
+    .isArray({ min: 1 })
+    .withMessage("fileIds must be a non-empty array of file IDs"),
+  body("fileIds.*")
+    .isMongoId()
+    .withMessage("Each file ID must be a valid MongoDB ObjectId"),
+  validateResults,
+];
+
+const validateBatchMoveFiles = [
+  body("fileIds")
+    .isArray({ min: 1 })
+    .withMessage("fileIds must be a non-empty array of file IDs"),
+  body("fileIds.*")
+    .isMongoId()
+    .withMessage("Each file ID must be a valid MongoDB ObjectId"),
+  body("targetFolderId")
+    .optional({ nullable: true })
+    .custom((val) => {
+      if (val === null || val === "" || val === undefined || val === "root") return true;
+      const isValidMongoId = /^[0-9a-fA-F]{24}$/.test(val);
+      if (!isValidMongoId) throw new Error("Invalid target folder ID");
+      return true;
+    }),
+  validateResults,
+];
+
 module.exports = {
   validateUpdateFile,
   validateMoveFile,
+  validateBatchFiles,
+  validateBatchMoveFiles,
 };
