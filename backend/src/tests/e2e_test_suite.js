@@ -4,6 +4,7 @@
 process.env.NODE_ENV = "test";
 require("dotenv").config({ path: __dirname + "/../../.env" });
 
+const dns = require("dns");
 if (process.env.DNS_SERVERS) {
   try {
     dns.setServers(process.env.DNS_SERVERS.split(",").map((s) => s.trim()));
@@ -73,9 +74,15 @@ const runTestSuite = async () => {
   console.log("=========================================================\n");
 
   // 1. Connect to Database
-  const mongoUri = process.env.MONGO_URI || "mongodb://localhost:27017/skydrivex_test";
-  await mongoose.connect(mongoUri);
-  console.log("📦 Connected to MongoDB Atlas for Testing\n");
+  const primaryUri = process.env.TEST_MONGO_URI || process.env.MONGO_URI || "mongodb://127.0.0.1:27017/skydrivex_test";
+  try {
+    await mongoose.connect(primaryUri, { serverSelectionTimeoutMS: 5000 });
+    console.log(`📦 Connected to MongoDB (${mongoose.connection.host}) for Testing\n`);
+  } catch (err) {
+    console.warn(`Primary test MongoDB connection failed (${err.message}). Falling back to local MongoDB...`);
+    await mongoose.connect("mongodb://127.0.0.1:27017/skydrivex_test", { serverSelectionTimeoutMS: 3000 });
+    console.log("📦 Connected to Local MongoDB for Testing\n");
+  }
 
   // Start temporary test server on random port
   server = http.createServer(app);

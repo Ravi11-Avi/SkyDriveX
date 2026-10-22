@@ -25,8 +25,12 @@ const validateCreateFolder = [
     }),
   body("parentFolder")
     .optional({ nullable: true })
-    .isMongoId()
-    .withMessage("Invalid parent folder ID"),
+    .custom((val) => {
+      if (val === null || val === "" || val === undefined || val === "root" || val === "null") return true;
+      const isValidMongoId = /^[0-9a-fA-F]{24}$/.test(val);
+      if (!isValidMongoId) throw new Error("Invalid parent folder ID");
+      return true;
+    }),
   body("color")
     .optional()
     .matches(/^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/)
@@ -63,7 +67,7 @@ const validateMoveFolder = [
   body("targetParentFolderId")
     .optional({ nullable: true })
     .custom((val) => {
-      if (val === null || val === "" || val === undefined) return true;
+      if (val === null || val === "" || val === undefined || val === "root" || val === "null") return true;
       const isValidMongoId = /^[0-9a-fA-F]{24}$/.test(val);
       if (!isValidMongoId) throw new Error("Invalid target parent folder ID");
       return true;

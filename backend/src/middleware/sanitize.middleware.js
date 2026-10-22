@@ -4,7 +4,7 @@
  * @returns {any} Sanitized value
  */
 const sanitize = (target) => {
-  if (target instanceof Object) {
+  if (target !== null && typeof target === "object") {
     for (const key in target) {
       if (/^\$/.test(key) || /\./.test(key)) {
         delete target[key];

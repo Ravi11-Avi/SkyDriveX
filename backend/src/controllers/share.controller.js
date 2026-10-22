@@ -226,6 +226,13 @@ const getPublicShare = async (req, res, next) => {
       return next(new AppError("Share link not found or has been disabled", 404));
     }
 
+    if (share.itemType === "file" && (!share.file || share.file.isTrash)) {
+      return next(new AppError("Shared file not found or inactive", 404));
+    }
+    if (share.itemType === "folder" && (!share.folder || share.folder.isTrash)) {
+      return next(new AppError("Shared folder not found or inactive", 404));
+    }
+
     if (share.isExpired()) {
       return next(new AppError("This share link has expired", 410));
     }
@@ -352,8 +359,12 @@ const checkShareAccess = async (share, req) => {
 
   try {
     const decoded = jwt.verify(authHeader, JWT_SECRET);
-    return decoded.shareToken === share.shareToken;
+    if (decoded.shareToken !== share.shareToken) {
+      throw new AppError("Invalid share access session for this item", 403);
+    }
+    return true;
   } catch (err) {
+    if (err instanceof AppError) throw err;
     throw new AppError("Invalid or expired share access session. Please re-enter password.", 403);
   }
 };
@@ -366,7 +377,7 @@ const downloadSharedFile = async (req, res, next) => {
     const { token } = req.params;
 
     const share = await Share.findOne({ shareToken: token, isActive: true }).populate("file");
-    if (!share || !share.file) {
+    if (!share || !share.file || share.file.isTrash) {
       return next(new AppError("Shared file not found or inactive", 404));
     }
 
@@ -403,7 +414,7 @@ const viewSharedFile = async (req, res, next) => {
     const { token } = req.params;
 
     const share = await Share.findOne({ shareToken: token, isActive: true }).populate("file");
-    if (!share || !share.file) {
+    if (!share || !share.file || share.file.isTrash) {
       return next(new AppError("Shared file not found or inactive", 404));
     }
 

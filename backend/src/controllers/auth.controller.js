@@ -36,6 +36,7 @@ const sendTokenResponse = (user, statusCode, res) => {
   res.status(statusCode).json({
     success: true,
     accessToken,
+    refreshToken,
     user,
   });
 };
@@ -109,8 +110,8 @@ const login = async (req, res, next) => {
  */
 const refreshToken = async (req, res, next) => {
   try {
-    // 1. Get refresh token from cookies
-    const token = req.cookies.refreshToken;
+    // 1. Get refresh token from cookies or body
+    const token = (req.cookies && req.cookies.refreshToken) || req.body?.refreshToken;
     if (!token) {
       return next(new AppError("Refresh token missing. Please log in again.", 401));
     }

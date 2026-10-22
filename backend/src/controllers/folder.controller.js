@@ -15,10 +15,14 @@ const createFolder = async (req, res, next) => {
 
     let path = [];
     let parentFolderDoc = null;
+    const targetParentId =
+      parentFolder && parentFolder !== "root" && parentFolder !== "null"
+        ? parentFolder
+        : null;
 
-    if (parentFolder) {
+    if (targetParentId) {
       parentFolderDoc = await Folder.findOne({
-        _id: parentFolder,
+        _id: targetParentId,
         user: userId,
         isTrash: false,
       });
@@ -37,7 +41,7 @@ const createFolder = async (req, res, next) => {
     // Check for duplicate name in the same parent directory
     const existingFolder = await Folder.findOne({
       user: userId,
-      parentFolder: parentFolder || null,
+      parentFolder: targetParentId,
       name: name.trim(),
       isTrash: false,
     });
@@ -51,7 +55,7 @@ const createFolder = async (req, res, next) => {
     const folder = await Folder.create({
       name: name.trim(),
       user: userId,
-      parentFolder: parentFolder || null,
+      parentFolder: targetParentId,
       path,
       color: color || "#4F46E5",
     });
@@ -268,7 +272,10 @@ const moveFolder = async (req, res, next) => {
       return next(new AppError("Folder not found", 404));
     }
 
-    const newParentId = targetParentFolderId || null;
+    const newParentId =
+      targetParentFolderId && targetParentFolderId !== "root" && targetParentFolderId !== "null"
+        ? targetParentFolderId
+        : null;
 
     // Cannot move folder into itself
     if (newParentId && newParentId.toString() === folder._id.toString()) {
@@ -618,9 +625,10 @@ const downloadFolderAsZip = async (req, res, next) => {
     });
 
     // 3. Initialize Archiver ZIP stream
-    const archive = archiver("zip", {
-      zlib: { level: 6 },
-    });
+    const archive =
+      typeof archiver === "function"
+        ? archiver("zip", { zlib: { level: 6 } })
+        : new archiver.ZipArchive({ zlib: { level: 6 } });
 
     const safeZipName = `${rootFolder.name.replace(/[^a-zA-Z0-9._-]/g, "_")}.zip`;
     res.attachment(safeZipName);

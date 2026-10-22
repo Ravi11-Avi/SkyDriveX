@@ -72,19 +72,14 @@ const shareSchema = new mongoose.Schema(
 );
 
 // Hash password before saving if provided
-shareSchema.pre("save", async function (next) {
+shareSchema.pre("save", async function () {
   if (!this.isModified("password") || !this.password) {
-    return next();
+    return;
   }
 
-  try {
-    const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password, salt);
-    this.isPasswordProtected = true;
-    next();
-  } catch (error) {
-    next(error);
-  }
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
+  this.isPasswordProtected = true;
 });
 
 // Compare password method

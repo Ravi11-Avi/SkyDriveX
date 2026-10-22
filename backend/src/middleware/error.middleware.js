@@ -6,8 +6,16 @@ const handleCastErrorDB = (err) => {
 };
 
 const handleDuplicateFieldsDB = (err) => {
-  // Extract duplicate value from error message
-  const value = err.errmsg ? err.errmsg.match(/(["'])(\\?.)*?\1/)[0] : "value";
+  let value = "value";
+  if (err.keyValue) {
+    value = Object.entries(err.keyValue)
+      .map(([k, v]) => `${k}: ${v}`)
+      .join(", ");
+  } else {
+    const rawMsg = err.errmsg || err.message || "";
+    const match = rawMsg.match(/(["'])(\\?.)*?\1/);
+    if (match) value = match[0];
+  }
   const message = `Duplicate field value: ${value}. Please use another value!`;
   return new AppError(message, 400);
 };
