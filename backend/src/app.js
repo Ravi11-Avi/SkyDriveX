@@ -13,7 +13,12 @@ const sanitizeMiddleware = require("./middleware/sanitize.middleware");
 const app = express();
 
 // 1. Global Middleware Setup
-app.use(helmet()); // Security headers
+app.use(
+  helmet({
+    crossOriginResourcePolicy: false,
+    crossOriginEmbedderPolicy: false,
+  })
+); // Security headers
 
 // Rate limiting for all API routes
 app.use("/api", apiLimiter);

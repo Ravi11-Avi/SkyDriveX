@@ -85,7 +85,29 @@ const createFolder = async (req, res, next) => {
 const getFolderContents = async (req, res, next) => {
   try {
     const userId = req.user._id;
-    const { parentFolder } = req.query;
+    const { parentFolder, isFavorite } = req.query;
+
+    if (isFavorite === "true") {
+      const folders = await Folder.find({
+        user: userId,
+        isFavorite: true,
+        isTrash: false,
+      }).sort({ name: 1 });
+
+      const files = await File.find({
+        user: userId,
+        isFavorite: true,
+        isTrash: false,
+      }).sort({ createdAt: -1 });
+
+      return res.status(200).json({
+        success: true,
+        currentFolder: null,
+        breadcrumbs: [{ _id: "favorites", name: "Favorites" }],
+        folders,
+        files,
+      });
+    }
 
     let targetParentId = null;
     let currentFolder = null;
