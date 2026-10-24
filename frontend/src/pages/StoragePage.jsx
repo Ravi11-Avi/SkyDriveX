@@ -8,34 +8,30 @@ import {
   Code,
   Archive,
   Layers,
-  History,
+  Activity,
   Trash2,
   RefreshCw,
-  Clock,
   ShieldCheck,
-  Activity,
-  AlertCircle,
+  Clock,
 } from "lucide-react";
 import { storageApi, activityApi } from "../services/api";
 import ConfirmModal from "../components/modals/ConfirmModal";
 
 const CATEGORY_META = {
-  image: { label: "Images", icon: Image, color: "#38bdf8" },
-  video: { label: "Videos", icon: Video, color: "#f43f5e" },
-  audio: { label: "Audio", icon: Music, color: "#a855f7" },
-  document: { label: "Documents", icon: FileText, color: "#3b82f6" },
-  code: { label: "Code Files", icon: Code, color: "#10b981" },
-  archive: { label: "Archives", icon: Archive, color: "#f59e0b" },
-  other: { label: "Others", icon: Layers, color: "#64748b" },
+  image: { label: "Images", icon: Image, color: "text-sky-400", bg: "bg-sky-400/10", bar: "bg-sky-400" },
+  video: { label: "Videos", icon: Video, color: "text-rose-400", bg: "bg-rose-400/10", bar: "bg-rose-400" },
+  audio: { label: "Audio", icon: Music, color: "text-purple-400", bg: "bg-purple-400/10", bar: "bg-purple-400" },
+  document: { label: "Documents", icon: FileText, color: "text-blue-400", bg: "bg-blue-400/10", bar: "bg-blue-400" },
+  code: { label: "Code Files", icon: Code, color: "text-emerald-400", bg: "bg-emerald-400/10", bar: "bg-emerald-400" },
+  archive: { label: "Archives", icon: Archive, color: "text-amber-400", bg: "bg-amber-400/10", bar: "bg-amber-400" },
+  other: { label: "Others", icon: Layers, color: "text-zinc-400", bg: "bg-zinc-400/10", bar: "bg-zinc-400" },
 };
 
 export default function StoragePage() {
   const [summary, setSummary] = useState(null);
   const [activities, setActivities] = useState([]);
   const [activityTotal, setActivityTotal] = useState(0);
-  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
-  const [activityLoading, setActivityLoading] = useState(false);
   const [feedback, setFeedback] = useState(null);
   const [confirmModal, setConfirmModal] = useState(null);
 
@@ -70,28 +66,12 @@ export default function StoragePage() {
     loadStorageData();
   }, [loadStorageData]);
 
-  const loadMoreActivities = async (newPage) => {
-    try {
-      setActivityLoading(true);
-      const res = await activityApi.getActivities({ page: newPage, limit: 15 });
-      if (res.success) {
-        setActivities(res.activities || []);
-        setPage(newPage);
-      }
-    } catch (err) {
-      showToast(err.message || "Failed to load activities", "error");
-    } finally {
-      setActivityLoading(false);
-    }
-  };
-
   const handleClearActivities = () => {
     setConfirmModal({
       title: "Clear Activity Audit Log?",
       message:
         "This will permanently erase your recent activity audit logs from the system. Your files and folders will remain unaffected.",
       confirmLabel: "Clear Log",
-      isDestructive: true,
       onConfirm: async () => {
         try {
           await activityApi.clear();
@@ -130,66 +110,77 @@ export default function StoragePage() {
   const percent = summary?.percentageUsed ? parseFloat(summary.percentageUsed) : ((used / limit) * 100);
 
   return (
-    <div className="dashboard-content">
+    <div className="flex flex-col gap-6 max-w-7xl mx-auto">
       {/* Toast Feedback */}
       {feedback && (
-        <div className={`floating-toast toast-${feedback.type}`}>
+        <div
+          className={`fixed bottom-6 right-6 z-50 px-4 py-2.5 rounded-2xl border text-sm font-medium shadow-2xl backdrop-blur-xl animate-in slide-in-from-bottom-5 duration-200 ${
+            feedback.type === "error"
+              ? "bg-red-500/10 border-red-500/20 text-red-300"
+              : "bg-emerald-500/10 border-emerald-500/20 text-emerald-300"
+          }`}
+        >
           {feedback.message}
         </div>
       )}
 
       {/* Page Header */}
-      <div className="page-header">
-        <div className="page-title-group">
-          <div className="page-icon-badge purple">
-            <HardDrive size={24} />
+      <div className="flex items-center justify-between pb-4 border-b border-white/[0.06]">
+        <div className="flex items-center gap-3.5">
+          <div className="w-11 h-11 rounded-2xl flex items-center justify-center bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+            <HardDrive size={22} className="stroke-[2.2]" />
           </div>
           <div>
-            <h1 className="page-title">Storage & Audit</h1>
-            <p className="page-subtitle">
-              Manage your drive quota and inspect real-time security activity logs
+            <h1 className="text-xl font-bold font-['Outfit'] text-white">
+              Storage & Audit Analytics
+            </h1>
+            <p className="text-xs text-zinc-400">
+              Inspect your cloud storage allocation and real-time security activity events
             </p>
           </div>
         </div>
 
-        <div className="header-actions">
-          <button
-            className="btn btn-secondary btn-icon"
-            onClick={loadStorageData}
-            title="Refresh analytics"
-          >
-            <RefreshCw size={17} className={loading ? "spin" : ""} />
-          </button>
-        </div>
+        <button
+          onClick={loadStorageData}
+          title="Refresh analytics"
+          className="p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-zinc-400 hover:text-white border border-white/[0.08] transition-colors cursor-pointer"
+        >
+          <RefreshCw size={15} className={loading ? "animate-spin text-indigo-400" : ""} />
+        </button>
       </div>
 
       {loading ? (
-        <div className="loading-state">
-          <div className="loading-spinner"></div>
-          <p>Analyzing storage allocation...</p>
+        <div className="flex flex-col items-center justify-center py-20 gap-3 text-zinc-500">
+          <div className="w-8 h-8 rounded-full border-2 border-indigo-500 border-t-transparent animate-spin" />
+          <p className="text-xs font-medium">Analyzing storage distribution...</p>
         </div>
       ) : (
-        <div className="storage-analytics-layout">
-          {/* Main Quota Card */}
-          <div className="glass-card storage-main-card">
-            <div className="storage-main-header">
+        <div className="flex flex-col gap-6">
+          {/* Main Storage Allocation Hero Card */}
+          <div className="p-6 rounded-3xl bg-[#0c0f17]/90 border border-white/[0.08] shadow-2xl flex flex-col gap-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <span className="text-secondary text-sm uppercase tracking-wide">
-                  Storage Allocation
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
+                  Total Allocated Quota
                 </span>
-                <h2 className="storage-large-num">
-                  {formatBytes(used)}{" "}
-                  <span className="storage-limit-sub">/ {formatBytes(limit)}</span>
-                </h2>
+                <div className="flex items-baseline gap-2 mt-1">
+                  <span className="text-3xl font-extrabold font-['Outfit'] text-white">
+                    {formatBytes(used)}
+                  </span>
+                  <span className="text-sm font-medium text-zinc-500">
+                    / {formatBytes(limit)} (Free Tier)
+                  </span>
+                </div>
               </div>
-              <div className="storage-percent-pill">
-                <span className="percent-val">{percent.toFixed(1)}%</span>
-                <span className="percent-sub">used</span>
+
+              <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 self-start sm:self-auto">
+                <span className="text-lg font-bold font-['Outfit']">{percent.toFixed(1)}%</span>
+                <span className="text-xs text-indigo-400 font-medium">used</span>
               </div>
             </div>
 
-            {/* Segmented Progress Bar */}
-            <div className="storage-bar-multi">
+            {/* Segmented Multi-Color Progress Bar */}
+            <div className="w-full bg-zinc-800/80 h-3 rounded-full overflow-hidden flex gap-0.5 p-0.5">
               {summary?.categories &&
                 Object.entries(summary.categories).map(([catKey, data]) => {
                   const catSize = data.size || 0;
@@ -199,27 +190,22 @@ export default function StoragePage() {
                   return (
                     <div
                       key={catKey}
-                      className="storage-bar-segment"
-                      style={{
-                        width: `${catPercent}%`,
-                        backgroundColor: meta.color,
-                      }}
+                      className={`h-full ${meta.bar} rounded-full transition-all duration-500`}
+                      style={{ width: `${catPercent}%` }}
                       title={`${meta.label}: ${formatBytes(catSize)} (${catPercent.toFixed(1)}%)`}
                     />
                   );
                 })}
             </div>
 
-            <div className="storage-meta-hint">
-              <ShieldCheck size={16} className="text-success" />
-              <span>
-                Zero-knowledge encrypted cloud storage. Backed up with automated replication.
-              </span>
+            <div className="flex items-center gap-2 text-xs text-zinc-400">
+              <ShieldCheck size={15} className="text-emerald-400 shrink-0" />
+              <span>Zero-knowledge client encrypted storage. Redundantly replicated in cloud buckets.</span>
             </div>
           </div>
 
           {/* Category Breakdown Grid */}
-          <div className="storage-categories-grid">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3.5">
             {summary?.categories &&
               Object.entries(summary.categories).map(([catKey, data]) => {
                 const meta = CATEGORY_META[catKey] || CATEGORY_META.other;
@@ -229,23 +215,23 @@ export default function StoragePage() {
                 const catPercent = used > 0 ? ((catSize / used) * 100).toFixed(1) : 0;
 
                 return (
-                  <div key={catKey} className="glass-card storage-category-card">
-                    <div className="cat-card-header">
-                      <div
-                        className="cat-icon-wrap"
-                        style={{
-                          backgroundColor: `${meta.color}20`,
-                          color: meta.color,
-                        }}
-                      >
-                        <IconComponent size={20} />
+                  <div
+                    key={catKey}
+                    className="p-4 rounded-2xl bg-[#0c0f17]/90 border border-white/[0.06] flex flex-col gap-3 shadow-lg"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${meta.bg} ${meta.color} border border-white/5`}>
+                        <IconComponent size={18} />
                       </div>
-                      <span className="cat-percent-tag">{catPercent}%</span>
+                      <span className="text-xs font-semibold text-zinc-400">{catPercent}%</span>
                     </div>
-                    <div className="cat-card-body">
-                      <h4 className="cat-title">{meta.label}</h4>
-                      <p className="cat-size-str">{formatBytes(catSize)}</p>
-                      <span className="cat-count-sub">{catCount} files</span>
+
+                    <div>
+                      <h4 className="text-xs font-semibold text-zinc-200">{meta.label}</h4>
+                      <p className="text-base font-bold font-['Outfit'] text-white mt-0.5">
+                        {formatBytes(catSize)}
+                      </p>
+                      <span className="text-[10px] text-zinc-500">{catCount} files</span>
                     </div>
                   </div>
                 );
@@ -253,57 +239,60 @@ export default function StoragePage() {
           </div>
 
           {/* Security & Audit Activity Log */}
-          <div className="glass-card activity-section">
-            <div className="activity-section-header">
-              <div className="activity-title-group">
-                <Activity size={20} className="text-accent" />
-                <h3>Activity Audit Log</h3>
-                <span className="badge badge-secondary">{activityTotal} events</span>
+          <div className="p-6 rounded-3xl bg-[#0c0f17]/90 border border-white/[0.08] shadow-2xl flex flex-col gap-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <Activity size={18} className="text-indigo-400" />
+                <h3 className="text-sm font-bold uppercase tracking-wider text-white">
+                  Activity Audit Trail
+                </h3>
+                <span className="px-2 py-0.5 rounded-full text-[11px] font-medium bg-white/[0.06] text-zinc-400 border border-white/[0.08]">
+                  {activityTotal} events
+                </span>
               </div>
+
               {activities.length > 0 && (
                 <button
-                  className="btn btn-secondary btn-sm"
                   onClick={handleClearActivities}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.04] hover:bg-red-500/10 text-zinc-400 hover:text-red-400 border border-white/[0.06] hover:border-red-500/20 text-xs font-medium transition-all cursor-pointer"
                 >
-                  <Trash2 size={14} />
-                  Clear History
+                  <Trash2 size={13} />
+                  <span>Clear History</span>
                 </button>
               )}
             </div>
 
             {activities.length === 0 ? (
-              <div className="empty-substate">
-                <Clock size={32} className="text-secondary" />
-                <p>No activity logs recorded yet.</p>
+              <div className="flex flex-col items-center justify-center py-12 text-zinc-500 text-xs gap-2">
+                <Clock size={24} />
+                <p>No activity events recorded yet.</p>
               </div>
             ) : (
-              <div className="activity-table-wrap">
-                <table className="activity-table">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
                   <thead>
-                    <tr>
-                      <th>Action</th>
-                      <th>Target</th>
-                      <th>Timestamp</th>
-                      <th>IP Address</th>
+                    <tr className="border-b border-white/[0.06] text-zinc-500 uppercase tracking-wider text-[10px]">
+                      <th className="py-2.5 px-3">Action</th>
+                      <th className="py-2.5 px-3">Item / Description</th>
+                      <th className="py-2.5 px-3">Timestamp</th>
+                      <th className="py-2.5 px-3">Client IP</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="divide-y divide-white/[0.04]">
                     {activities.map((act) => (
-                      <tr key={act._id}>
-                        <td>
-                          <span className={`badge-action badge-${act.action.toLowerCase()}`}>
+                      <tr key={act._id} className="hover:bg-white/[0.02] transition-colors">
+                        <td className="py-2.5 px-3">
+                          <span className="inline-block px-2 py-0.5 rounded-md text-[10px] font-semibold uppercase tracking-wider bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
                             {act.action.replace(/_/g, " ")}
                           </span>
                         </td>
-                        <td>
-                          <span className="activity-target font-medium">
-                            {act.itemName || act.details?.name || "--"}
-                          </span>
+                        <td className="py-2.5 px-3 font-medium text-zinc-200">
+                          {act.itemName || act.details?.name || "--"}
                         </td>
-                        <td className="text-secondary text-sm">
+                        <td className="py-2.5 px-3 text-zinc-400">
                           {formatDate(act.createdAt)}
                         </td>
-                        <td className="text-secondary text-mono text-sm">
+                        <td className="py-2.5 px-3 font-mono text-zinc-500">
                           {act.ipAddress || "127.0.0.1"}
                         </td>
                       </tr>
@@ -322,10 +311,9 @@ export default function StoragePage() {
           isOpen={true}
           title={confirmModal.title}
           message={confirmModal.message}
-          confirmLabel={confirmModal.confirmLabel}
-          isDestructive={confirmModal.isDestructive}
+          confirmText={confirmModal.confirmLabel}
           onConfirm={confirmModal.onConfirm}
-          onCancel={() => setConfirmModal(null)}
+          onClose={() => setConfirmModal(null)}
         />
       )}
     </div>

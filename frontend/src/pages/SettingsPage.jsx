@@ -11,7 +11,6 @@ import {
   Lock,
   Mail,
   Camera,
-  LogOut,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import ConfirmModal from "../components/modals/ConfirmModal";
@@ -86,177 +85,195 @@ export default function SettingsPage() {
   const isOAuthUser = !user?.authProvider || user?.authProvider !== "local";
 
   return (
-    <div className="dashboard-content">
-      <div className="page-header">
-        <div className="page-title-group">
-          <div className="page-icon-badge purple">
-            <User size={24} />
+    <div className="flex flex-col gap-6 max-w-5xl mx-auto">
+      {/* Page Header */}
+      <div className="flex items-center justify-between pb-4 border-b border-white/[0.06]">
+        <div className="flex items-center gap-3.5">
+          <div className="w-11 h-11 rounded-2xl flex items-center justify-center bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+            <User size={22} className="stroke-[2.2]" />
           </div>
           <div>
-            <h1 className="page-title">Account Settings</h1>
-            <p className="page-subtitle">
-              Manage your personal profile, credentials, preferences, and account security
+            <h1 className="text-xl font-bold font-['Outfit'] text-white">
+              Account Settings
+            </h1>
+            <p className="text-xs text-zinc-400">
+              Manage your personal credentials, identity, security, and workspace preferences
             </p>
           </div>
         </div>
       </div>
 
-      <div className="settings-grid">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Profile Card */}
-        <div className="glass-card settings-card">
-          <div className="settings-card-header">
-            <div className="flex-center gap-2">
-              <User size={20} className="text-accent" />
-              <h3>Personal Profile</h3>
+        <div className="p-6 rounded-3xl bg-[#0c0f17]/90 border border-white/[0.08] shadow-xl flex flex-col gap-5">
+          <div className="flex items-center justify-between pb-3 border-b border-white/[0.06]">
+            <div className="flex items-center gap-2 text-sm font-bold text-white">
+              <User size={17} className="text-indigo-400" />
+              <span>Personal Identity</span>
             </div>
-            <span className="badge badge-secondary">Public Identity</span>
+            <span className="text-[10px] uppercase font-semibold text-zinc-500 bg-white/[0.04] px-2 py-0.5 rounded border border-white/5">
+              Public Profile
+            </span>
           </div>
 
           {profileFeedback && (
-            <div className={`feedback-alert ${profileFeedback.type}`}>
-              {profileFeedback.type === "success" ? <Check size={16} /> : <AlertTriangle size={16} />}
+            <div
+              className={`p-3 rounded-xl border text-xs flex items-center gap-2 ${
+                profileFeedback.type === "success"
+                  ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-300"
+                  : "bg-red-500/10 border-red-500/20 text-red-300"
+              }`}
+            >
+              {profileFeedback.type === "success" ? <Check size={14} /> : <AlertTriangle size={14} />}
               <span>{profileFeedback.message}</span>
             </div>
           )}
 
-          <form onSubmit={handleUpdateProfile} className="settings-form">
-            <div className="avatar-selection-row">
-              <div className="avatar-large-preview">
+          <form onSubmit={handleUpdateProfile} className="flex flex-col gap-4 text-xs">
+            {/* Avatar Row */}
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-indigo-500 to-violet-600 text-white font-bold text-xl flex items-center justify-center shrink-0 overflow-hidden ring-2 ring-white/10 shadow-lg">
                 {avatar ? (
-                  <img src={avatar} alt={name} className="avatar-img" />
+                  <img src={avatar} alt={name} className="w-full h-full object-cover" />
                 ) : (
-                  <div className="avatar-placeholder">
-                    {name?.charAt(0).toUpperCase() || "U"}
-                  </div>
+                  <span>{name?.charAt(0).toUpperCase() || "U"}</span>
                 )}
               </div>
-              <div className="avatar-inputs flex-1">
-                <label className="form-label">Avatar Image URL</label>
-                <div className="input-group">
-                  <Camera size={16} className="input-icon" />
+              <div className="flex flex-col gap-1 flex-1">
+                <label className="font-semibold text-zinc-300">Avatar Image URL</label>
+                <div className="relative">
+                  <Camera size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
                   <input
                     type="url"
-                    className="form-input has-icon"
-                    placeholder="https://example.com/avatar.png"
                     value={avatar}
                     onChange={(e) => setAvatar(e.target.value)}
+                    placeholder="https://example.com/avatar.png"
+                    className="w-full bg-[#0d101a] border border-white/[0.08] focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-zinc-100 placeholder-zinc-500 pl-8 pr-3 py-2 rounded-xl outline-none"
                   />
                 </div>
-                <span className="form-hint">Paste a link to any PNG or JPG image</span>
               </div>
             </div>
 
-            <div className="form-group">
-              <label className="form-label">Full Name</label>
+            <div className="flex flex-col gap-1">
+              <label className="font-semibold text-zinc-300">Full Name</label>
               <input
                 type="text"
-                className="form-input"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
+                className="w-full bg-[#0d101a] border border-white/[0.08] focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-zinc-100 px-3 py-2 rounded-xl outline-none"
               />
             </div>
 
-            <div className="form-group">
-              <label className="form-label">Email Address</label>
-              <div className="input-group">
-                <Mail size={16} className="input-icon" />
+            <div className="flex flex-col gap-1">
+              <label className="font-semibold text-zinc-300">Email Address</label>
+              <div className="relative">
+                <Mail size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
                 <input
                   type="email"
-                  className="form-input has-icon"
                   value={user?.email || ""}
                   disabled
+                  className="w-full bg-white/[0.02] border border-white/[0.04] text-zinc-400 pl-8 pr-3 py-2 rounded-xl outline-none cursor-not-allowed"
                 />
               </div>
-              <span className="form-hint">Email is linked to your primary login account</span>
+              <span className="text-[10px] text-zinc-500">Email is locked to primary account</span>
             </div>
 
             <button
               type="submit"
-              className="btn btn-primary"
               disabled={profileSaving}
+              className="mt-2 py-2.5 px-4 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-400 hover:to-violet-500 text-white font-medium text-xs shadow-md shadow-indigo-500/20 transition-all cursor-pointer"
             >
-              {profileSaving ? "Saving changes..." : "Save Profile"}
+              {profileSaving ? "Saving..." : "Save Profile"}
             </button>
           </form>
         </div>
 
         {/* Security & Password Card */}
-        <div className="glass-card settings-card">
-          <div className="settings-card-header">
-            <div className="flex-center gap-2">
-              <Shield size={20} className="text-accent" />
-              <h3>Security & Password</h3>
+        <div className="p-6 rounded-3xl bg-[#0c0f17]/90 border border-white/[0.08] shadow-xl flex flex-col gap-5">
+          <div className="flex items-center justify-between pb-3 border-b border-white/[0.06]">
+            <div className="flex items-center gap-2 text-sm font-bold text-white">
+              <Shield size={17} className="text-indigo-400" />
+              <span>Security & Passwords</span>
             </div>
-            <span className="badge badge-secondary">Authentication</span>
+            <span className="text-[10px] uppercase font-semibold text-zinc-500 bg-white/[0.04] px-2 py-0.5 rounded border border-white/5">
+              Authentication
+            </span>
           </div>
 
           {passwordFeedback && (
-            <div className={`feedback-alert ${passwordFeedback.type}`}>
-              {passwordFeedback.type === "success" ? <Check size={16} /> : <AlertTriangle size={16} />}
+            <div
+              className={`p-3 rounded-xl border text-xs flex items-center gap-2 ${
+                passwordFeedback.type === "success"
+                  ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-300"
+                  : "bg-red-500/10 border-red-500/20 text-red-300"
+              }`}
+            >
+              {passwordFeedback.type === "success" ? <Check size={14} /> : <AlertTriangle size={14} />}
               <span>{passwordFeedback.message}</span>
             </div>
           )}
 
           {isOAuthUser ? (
-            <div className="oauth-account-notice">
-              <div className="notice-icon">
+            <div className="flex flex-col items-center justify-center py-8 text-center gap-2">
+              <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 mb-2">
                 <Shield size={24} />
               </div>
-              <h4>Single Sign-On Account</h4>
-              <p>
-                You are currently authenticated via your <strong>{user?.authProvider || "OAuth"}</strong> provider. Passwords are securely handled through your provider.
+              <h4 className="text-sm font-bold text-white">Single Sign-On Enabled</h4>
+              <p className="text-xs text-zinc-400 max-w-xs">
+                You are authenticated via <strong>{user?.authProvider || "OAuth"}</strong>. Passwords and credentials are managed directly through your identity provider.
               </p>
             </div>
           ) : (
-            <form onSubmit={handleChangePassword} className="settings-form">
-              <div className="form-group">
-                <label className="form-label">Current Password</label>
-                <div className="input-group">
-                  <Key size={16} className="input-icon" />
+            <form onSubmit={handleChangePassword} className="flex flex-col gap-4 text-xs">
+              <div className="flex flex-col gap-1">
+                <label className="font-semibold text-zinc-300">Current Password</label>
+                <div className="relative">
+                  <Key size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
                   <input
                     type="password"
-                    className="form-input has-icon"
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
                     required
+                    className="w-full bg-[#0d101a] border border-white/[0.08] focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-zinc-100 pl-8 pr-3 py-2 rounded-xl outline-none"
                   />
                 </div>
               </div>
 
-              <div className="form-group">
-                <label className="form-label">New Password</label>
-                <div className="input-group">
-                  <Lock size={16} className="input-icon" />
+              <div className="flex flex-col gap-1">
+                <label className="font-semibold text-zinc-300">New Password</label>
+                <div className="relative">
+                  <Lock size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
                   <input
                     type="password"
-                    className="form-input has-icon"
-                    placeholder="Minimum 8 characters"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     required
+                    placeholder="Min. 8 characters"
+                    className="w-full bg-[#0d101a] border border-white/[0.08] focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-zinc-100 pl-8 pr-3 py-2 rounded-xl outline-none"
                   />
                 </div>
               </div>
 
-              <div className="form-group">
-                <label className="form-label">Confirm New Password</label>
-                <div className="input-group">
-                  <Lock size={16} className="input-icon" />
+              <div className="flex flex-col gap-1">
+                <label className="font-semibold text-zinc-300">Confirm New Password</label>
+                <div className="relative">
+                  <Lock size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
                   <input
                     type="password"
-                    className="form-input has-icon"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
+                    placeholder="Repeat new password"
+                    className="w-full bg-[#0d101a] border border-white/[0.08] focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-zinc-100 pl-8 pr-3 py-2 rounded-xl outline-none"
                   />
                 </div>
               </div>
 
               <button
                 type="submit"
-                className="btn btn-primary"
                 disabled={passwordSaving}
+                className="mt-2 py-2.5 px-4 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-400 hover:to-violet-500 text-white font-medium text-xs shadow-md shadow-indigo-500/20 transition-all cursor-pointer"
               >
                 {passwordSaving ? "Updating Password..." : "Update Password"}
               </button>
@@ -264,63 +281,47 @@ export default function SettingsPage() {
           )}
         </div>
 
-        {/* Preferences Card */}
-        <div className="glass-card settings-card">
-          <div className="settings-card-header">
-            <div className="flex-center gap-2">
-              <Sun size={20} className="text-warning" />
-              <h3>Display & Theme</h3>
-            </div>
+        {/* Theme Preferences */}
+        <div className="p-6 rounded-3xl bg-[#0c0f17]/90 border border-white/[0.08] shadow-xl flex items-center justify-between">
+          <div className="flex flex-col gap-1">
+            <h4 className="text-sm font-bold text-white">Interface Theme</h4>
+            <p className="text-xs text-zinc-400">
+              Toggle between Midnight Obsidian and Crisp Lumina themes
+            </p>
           </div>
-
-          <div className="theme-toggle-row">
-            <div>
-              <h4 className="font-medium">Interface Appearance</h4>
-              <p className="text-secondary text-sm">
-                Switch between Midnight Obsidian and Crisp Lumina themes
-              </p>
-            </div>
-            <button
-              className="btn btn-secondary theme-switch-btn"
-              onClick={toggleTheme}
-            >
-              {theme === "dark" ? (
-                <>
-                  <Sun size={16} className="text-warning" /> Light Mode
-                </>
-              ) : (
-                <>
-                  <Moon size={16} className="text-cyan" /> Dark Mode
-                </>
-              )}
-            </button>
-          </div>
+          <button
+            onClick={toggleTheme}
+            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-xs font-semibold text-zinc-200 transition-all cursor-pointer"
+          >
+            {theme === "dark" ? (
+              <>
+                <Sun size={15} className="text-amber-400" />
+                <span>Light Mode</span>
+              </>
+            ) : (
+              <>
+                <Moon size={15} className="text-indigo-400" />
+                <span>Dark Mode</span>
+              </>
+            )}
+          </button>
         </div>
 
-        {/* Danger Zone Card */}
-        <div className="glass-card settings-card danger-card">
-          <div className="settings-card-header">
-            <div className="flex-center gap-2">
-              <AlertTriangle size={20} className="text-danger" />
-              <h3 className="text-danger">Danger Zone</h3>
-            </div>
+        {/* Danger Zone */}
+        <div className="p-6 rounded-3xl bg-red-500/[0.03] border border-red-500/20 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex flex-col gap-1">
+            <h4 className="text-sm font-bold text-red-400">Danger Zone: Delete Account</h4>
+            <p className="text-xs text-zinc-400">
+              Permanently wipes all cloud files, folders, and shared links.
+            </p>
           </div>
-
-          <div className="danger-zone-content">
-            <div>
-              <h4 className="font-semibold">Delete Account Permanently</h4>
-              <p className="text-secondary text-sm">
-                Once deleted, all of your files, folders, shared links, and activity logs will be permanently erased.
-              </p>
-            </div>
-            <button
-              className="btn btn-danger"
-              onClick={() => setConfirmDelete(true)}
-            >
-              <Trash2 size={16} />
-              Delete Account
-            </button>
-          </div>
+          <button
+            onClick={() => setConfirmDelete(true)}
+            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-red-500/15 hover:bg-red-500/25 text-red-400 border border-red-500/30 text-xs font-semibold transition-all cursor-pointer shrink-0"
+          >
+            <Trash2 size={14} />
+            <span>Delete Account</span>
+          </button>
         </div>
       </div>
 
@@ -330,10 +331,9 @@ export default function SettingsPage() {
           isOpen={true}
           title="Permanently Delete Account?"
           message="This action is irreversible. All of your uploaded files, custom folders, shared links, and user data will be destroyed immediately. Are you sure you wish to proceed?"
-          confirmLabel="Permanently Delete"
-          isDestructive={true}
+          confirmText="Permanently Delete"
           onConfirm={handleDeleteAccount}
-          onCancel={() => setConfirmDelete(false)}
+          onClose={() => setConfirmDelete(false)}
         />
       )}
     </div>

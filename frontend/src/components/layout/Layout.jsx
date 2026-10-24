@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Outlet, useLocation, useNavigate } from "react-router-dom";
-import { UploadCloud, CheckCircle2, AlertCircle, X } from "lucide-react";
+import { Outlet, useLocation } from "react-router-dom";
+import { UploadCloud, CheckCircle2, AlertCircle, X, Loader2 } from "lucide-react";
 import { Sidebar } from "./Sidebar";
 import { Navbar } from "./Navbar";
 import { CreateFolderModal } from "../modals/CreateFolderModal";
@@ -61,7 +61,8 @@ export const Layout = () => {
     const handleDragLeave = (e) => {
       e.preventDefault();
       dragCounter--;
-      if (dragCounter === 0) {
+      if (dragCounter <= 0) {
+        dragCounter = 0;
         setIsDragging(false);
       }
     };
@@ -72,33 +73,41 @@ export const Layout = () => {
 
     const handleDrop = async (e) => {
       e.preventDefault();
-      setIsDragging(false);
       dragCounter = 0;
+      setIsDragging(false);
 
-      if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
-        const droppedFiles = Array.from(e.dataTransfer.files);
-        if (droppedFiles.length > 10) {
-          setUploadToast({ type: "error", text: "Max 10 files can be uploaded at once" });
-          return;
-        }
+      const files = e.dataTransfer?.files;
+      if (!files || files.length === 0) return;
 
-        setUploadToast({ type: "uploading", text: `Uploading ${droppedFiles.length} file(s)...` });
+      const formData = new FormData();
+      for (let i = 0; i < files.length; i++) {
+        formData.append("files", files[i]);
+      }
+      if (currentFolderId) {
+        formData.append("folder", currentFolderId);
+      }
 
-        try {
-          const formData = new FormData();
-          if (currentFolderId) formData.append("folder", currentFolderId);
-          droppedFiles.forEach((file) => formData.append("files", file));
+      try {
+        setUploadToast({
+          type: "uploading",
+          text: `Uploading ${files.length} file${files.length > 1 ? "s" : ""} to SkyDriveX...`,
+        });
 
-          const res = await fileApi.upload(formData);
-          if (res.success) {
-            setUploadToast({ type: "success", text: `${droppedFiles.length} file(s) uploaded successfully!` });
-            triggerRefresh();
-            setTimeout(() => setUploadToast(null), 4000);
-          }
-        } catch (err) {
-          setUploadToast({ type: "error", text: err.message || "Upload failed" });
-          setTimeout(() => setUploadToast(null), 5000);
-        }
+        await fileApi.upload(formData);
+
+        setUploadToast({
+          type: "success",
+          text: `Successfully uploaded ${files.length} file${files.length > 1 ? "s" : ""}!`,
+        });
+        triggerRefresh();
+
+        setTimeout(() => setUploadToast(null), 4000);
+      } catch (err) {
+        setUploadToast({
+          type: "error",
+          text: err.message || "Failed to upload dropped files",
+        });
+        setTimeout(() => setUploadToast(null), 5000);
       }
     };
 
@@ -116,37 +125,63 @@ export const Layout = () => {
   }, [currentFolderId]);
 
   return (
-    <div className="app-layout-shell">
+    <div className="flex h-screen w-screen overflow-hidden bg-[#06080d] text-slate-100 font-sans">
       {/* Global Drag & Drop Overlay */}
       {isDragging && (
-        <div className="global-drag-overlay">
-          <div className="drag-overlay-card glass-panel">
-            <div className="drag-overlay-icon-ring">
-              <UploadCloud size={52} />
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-6 animate-in fade-in duration-200 pointer-events-none">
+          <div className="max-w-md w-full bg-[#0c101a] border-2 border-dashed border-indigo-500 rounded-3xl p-8 flex flex-col items-center text-center shadow-2xl shadow-indigo-500/20">
+            <div className="w-16 h-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400 mb-4 animate-bounce">
+              <UploadCloud size={32} />
             </div>
-            <h2>Drop files anywhere to upload</h2>
-            <p>Files will be added directly to your current SkyDriveX directory</p>
+            <h2 className="text-xl font-bold font-['Outfit'] text-white mb-1">
+              Drop files anywhere to upload
+            </h2>
+            <p className="text-xs text-zinc-400 max-w-xs">
+              Files will be immediately uploaded to your current cloud directory
+            </p>
           </div>
         </div>
       )}
 
       {/* Floating Upload Notification Toast */}
       {uploadToast && (
-        <div className={`floating-upload-toast glass-panel toast-${uploadToast.type}`}>
-          <div className="toast-icon">
-            {uploadToast.type === "uploading" && <div className="toast-spinner" />}
-            {uploadToast.type === "success" && <CheckCircle2 size={18} color="#10B981" />}
-            {uploadToast.type === "error" && <AlertCircle size={18} color="#EF4444" />}
+        <div
+          className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-2xl border shadow-2xl backdrop-blur-xl text-sm font-medium animate-in slide-in-from-bottom-5 duration-200 ${
+            uploadToast.type === "success"
+              ? "bg-[#0c1a14]/90 border-emerald-500/30 text-emerald-300"
+              : uploadToast.type === "error"
+              ? "bg-[#1c0c0e]/90 border-red-500/30 text-red-300"
+              : "bg-[#0c101a]/95 border-indigo-500/30 text-indigo-200"
+          }`}
+        >
+          <div className="shrink-0">
+            {uploadToast.type === "uploading" && (
+              <Loader2 size={18} className="animate-spin text-indigo-400" />
+            )}
+            {uploadToast.type === "success" && (
+              <CheckCircle2 size={18} className="text-emerald-400" />
+            )}
+            {uploadToast.type === "error" && (
+              <AlertCircle size={18} className="text-red-400" />
+            )}
           </div>
-          <span className="toast-message">{uploadToast.text}</span>
-          <button className="toast-close" onClick={() => setUploadToast(null)}>
+          <span>{uploadToast.text}</span>
+          <button
+            onClick={() => setUploadToast(null)}
+            className="p-1 rounded-lg hover:bg-white/10 text-zinc-400 hover:text-white transition-colors cursor-pointer ml-2"
+          >
             <X size={14} />
           </button>
         </div>
       )}
 
-      {/* Mobile Backdrop */}
-      {mobileOpen && <div className="mobile-backdrop" onClick={() => setMobileOpen(false)} />}
+      {/* Mobile Drawer Backdrop */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-30 lg:hidden animate-in fade-in"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
 
       {/* Sidebar */}
       <Sidebar
@@ -156,8 +191,8 @@ export const Layout = () => {
         onCloseMobile={() => setMobileOpen(false)}
       />
 
-      {/* Main Content Area */}
-      <div className="app-main-viewport">
+      {/* Main Viewport */}
+      <div className="flex-1 flex flex-col h-screen min-w-0 overflow-hidden relative">
         <Navbar
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
@@ -167,7 +202,7 @@ export const Layout = () => {
           mobileOpen={mobileOpen}
         />
 
-        <main className="app-page-content">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6 lg:p-8 scrollbar-thin">
           <Outlet
             context={{
               viewMode,
@@ -185,7 +220,7 @@ export const Layout = () => {
         </main>
       </div>
 
-      {/* Global Modals */}
+      {/* Modals */}
       <CreateFolderModal
         isOpen={createFolderOpen}
         onClose={() => setCreateFolderOpen(false)}

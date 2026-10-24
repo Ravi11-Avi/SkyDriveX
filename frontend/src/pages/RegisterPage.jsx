@@ -10,7 +10,7 @@ import {
   ArrowRight,
   ShieldCheck,
   AlertCircle,
-  Check,
+  Loader2,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
@@ -37,7 +37,8 @@ export default function RegisterPage() {
 
   const strength = calculateStrength(password);
   const strengthLabels = ["Very Weak", "Weak", "Fair", "Strong", "Unbreakable"];
-  const strengthColors = ["#ef4444", "#f97316", "#eab308", "#10b981", "#06b6d4"];
+  const strengthColors = ["bg-red-500", "bg-orange-500", "bg-amber-500", "bg-emerald-500", "bg-cyan-500"];
+  const strengthTextColors = ["text-red-400", "text-orange-400", "text-amber-400", "text-emerald-400", "text-cyan-400"];
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -66,165 +67,160 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="auth-page">
-      {/* Dynamic ambient background glow */}
-      <div className="ambient-glow purple-glow"></div>
-      <div className="ambient-glow cyan-glow"></div>
+    <div className="min-h-screen w-screen flex items-center justify-center p-4 bg-[#06080d] text-slate-100 relative overflow-hidden font-sans">
+      {/* Background Ambient Radial Glow */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-gradient-to-b from-indigo-500/15 via-violet-500/5 to-transparent rounded-full blur-3xl pointer-events-none" />
 
-      <div className="auth-card-container">
-        {/* Brand header */}
-        <div className="auth-brand-wrap">
-          <Link to="/" className="brand-logo large">
-            <Cloud className="brand-icon" size={36} />
-            <span className="brand-name">
-              SkyDrive<span className="brand-x">X</span>
-            </span>
-          </Link>
-          <p className="auth-subtitle">
-            Create your account to receive 5 GB free encrypted cloud storage
+      <div className="w-full max-w-md flex flex-col gap-6 z-10">
+        {/* Brand Header */}
+        <div className="flex flex-col items-center text-center gap-2">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-500 via-indigo-600 to-violet-600 flex items-center justify-center text-white shadow-xl shadow-indigo-500/30 mb-1">
+            <Cloud size={28} className="stroke-[2.2]" />
+          </div>
+          <h1 className="text-2xl font-bold font-['Outfit'] tracking-tight text-white flex items-center gap-1">
+            SkyDrive<span className="text-indigo-400">X</span>
+          </h1>
+          <p className="text-xs text-zinc-400 max-w-xs">
+            Receive 5 GB free zero-knowledge cloud storage upon account creation
           </p>
         </div>
 
         {/* Card */}
-        <div className="glass-card auth-card">
-          <div className="auth-header">
-            <h2>Create Account</h2>
-            <p>Start organizing, previewing, and sharing your files securely</p>
+        <div className="p-8 rounded-3xl bg-[#0c0f17]/90 border border-white/[0.08] shadow-2xl backdrop-blur-2xl flex flex-col gap-5">
+          <div className="flex flex-col gap-1">
+            <h2 className="text-lg font-bold font-['Outfit'] text-white">Create Account</h2>
+            <p className="text-xs text-zinc-400">Start organizing, previewing, and transferring files</p>
           </div>
 
           {error && (
-            <div className="auth-error-banner">
-              <AlertCircle size={16} />
+            <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-xs flex items-center gap-2">
+              <AlertCircle size={15} className="shrink-0" />
               <span>{error}</span>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="auth-form">
-            <div className="form-group">
-              <label className="form-label">Full Name</label>
-              <div className="input-group">
-                <User size={18} className="input-icon" />
+          <form onSubmit={handleSubmit} className="flex flex-col gap-3.5 text-xs">
+            <div className="flex flex-col gap-1">
+              <label className="font-semibold text-zinc-300">Full Name</label>
+              <div className="relative">
+                <User size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500" />
                 <input
                   type="text"
-                  className="form-input has-icon"
-                  placeholder="Alex Mercer"
+                  required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  autoComplete="name"
-                  required
+                  placeholder="Alex Mercer"
+                  className="w-full bg-[#0d101a] border border-white/[0.08] focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-zinc-100 placeholder-zinc-500 pl-9 pr-3 py-2.5 rounded-xl outline-none"
                 />
               </div>
             </div>
 
-            <div className="form-group">
-              <label className="form-label">Email Address</label>
-              <div className="input-group">
-                <Mail size={18} className="input-icon" />
+            <div className="flex flex-col gap-1">
+              <label className="font-semibold text-zinc-300">Email Address</label>
+              <div className="relative">
+                <Mail size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500" />
                 <input
                   type="email"
-                  className="form-input has-icon"
-                  placeholder="alex@example.com"
+                  required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  autoComplete="email"
-                  required
+                  placeholder="alex@example.com"
+                  className="w-full bg-[#0d101a] border border-white/[0.08] focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-zinc-100 placeholder-zinc-500 pl-9 pr-3 py-2.5 rounded-xl outline-none"
                 />
               </div>
             </div>
 
-            <div className="form-group">
-              <label className="form-label">Password</label>
-              <div className="input-group">
-                <Lock size={18} className="input-icon" />
+            <div className="flex flex-col gap-1">
+              <label className="font-semibold text-zinc-300">Password</label>
+              <div className="relative">
+                <Lock size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500" />
                 <input
                   type={showPassword ? "text" : "password"}
-                  className="form-input has-icon has-action"
-                  placeholder="Minimum 8 characters"
+                  required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  autoComplete="new-password"
-                  required
+                  placeholder="Min. 8 characters"
+                  className="w-full bg-[#0d101a] border border-white/[0.08] focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-zinc-100 placeholder-zinc-500 pl-9 pr-9 py-2.5 rounded-xl outline-none"
                 />
                 <button
                   type="button"
-                  className="input-action-btn"
                   onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 cursor-pointer"
                 >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                 </button>
               </div>
 
               {/* Password strength bar */}
               {password && (
-                <div className="strength-meter">
-                  <div className="strength-bars">
+                <div className="flex items-center justify-between gap-3 mt-1.5 px-0.5">
+                  <div className="flex items-center gap-1 flex-1">
                     {[1, 2, 3, 4].map((level) => (
                       <div
                         key={level}
-                        className="strength-bar-cell"
-                        style={{
-                          backgroundColor:
-                            strength >= level ? strengthColors[strength] : "rgba(255,255,255,0.1)",
-                        }}
+                        className={`h-1 flex-1 rounded-full transition-all duration-300 ${
+                          strength >= level ? strengthColors[strength] : "bg-white/10"
+                        }`}
                       />
                     ))}
                   </div>
-                  <span
-                    className="strength-label"
-                    style={{ color: strengthColors[strength] }}
-                  >
+                  <span className={`text-[10px] font-bold tracking-wider uppercase ${strengthTextColors[strength]}`}>
                     {strengthLabels[strength]}
                   </span>
                 </div>
               )}
             </div>
 
-            <div className="form-group">
-              <label className="form-label">Confirm Password</label>
-              <div className="input-group">
-                <Lock size={18} className="input-icon" />
+            <div className="flex flex-col gap-1">
+              <label className="font-semibold text-zinc-300">Confirm Password</label>
+              <div className="relative">
+                <Lock size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500" />
                 <input
                   type={showPassword ? "text" : "password"}
-                  className="form-input has-icon"
-                  placeholder="Repeat your password"
+                  required
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  autoComplete="new-password"
-                  required
+                  placeholder="Repeat your password"
+                  className="w-full bg-[#0d101a] border border-white/[0.08] focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-zinc-100 placeholder-zinc-500 pl-9 pr-3 py-2.5 rounded-xl outline-none"
                 />
               </div>
             </div>
 
             <button
               type="submit"
-              className="btn btn-primary btn-block btn-lg"
               disabled={loading}
+              className="mt-2 w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-400 hover:to-violet-500 text-white font-semibold text-sm shadow-lg shadow-indigo-500/25 active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-2"
             >
               {loading ? (
                 <>
-                  <div className="loading-spinner mini"></div>
-                  Setting up drive...
+                  <Loader2 size={16} className="animate-spin" />
+                  <span>Provisioning Drive...</span>
                 </>
               ) : (
                 <>
-                  Create Account
-                  <ArrowRight size={18} />
+                  <span>Create Account</span>
+                  <ArrowRight size={15} />
                 </>
               )}
             </button>
           </form>
 
-          {/* Social Sign-in Separator */}
-          <div className="auth-separator">
-            <span>or sign up with</span>
+          {/* Separator */}
+          <div className="flex items-center my-1">
+            <div className="flex-1 border-t border-white/[0.06]" />
+            <span className="px-3 text-[11px] text-zinc-500 uppercase font-semibold tracking-wider">
+              or sign up with
+            </span>
+            <div className="flex-1 border-t border-white/[0.06]" />
           </div>
 
-          <div className="oauth-buttons-grid">
+          {/* Social OAuth Buttons */}
+          <div className="grid grid-cols-2 gap-3">
             <a
               href="/api/v1/auth/google"
-              className="btn btn-secondary oauth-btn"
+              className="flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-xs font-medium text-zinc-200 transition-colors"
             >
-              <svg className="oauth-icon" viewBox="0 0 24 24">
+              <svg className="w-4 h-4" viewBox="0 0 24 24">
                 <path
                   fill="#EA4335"
                   d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.8 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.4 9 5 12 5z"
@@ -242,36 +238,36 @@ export default function RegisterPage() {
                   d="M12 23.5c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.4-6.4-5.2L1.9 16.5C3.7 20.2 7.5 23.5 12 23.5z"
                 />
               </svg>
-              Google
+              <span>Google</span>
             </a>
 
             <a
               href="/api/v1/auth/github"
-              className="btn btn-secondary oauth-btn"
+              className="flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-xs font-medium text-zinc-200 transition-colors"
             >
-              <svg className="oauth-icon" fill="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                 <path
                   fillRule="evenodd"
                   clipRule="evenodd"
                   d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"
                 />
               </svg>
-              GitHub
+              <span>GitHub</span>
             </a>
           </div>
 
-          <div className="auth-footer-prompt">
+          <div className="text-center text-xs text-zinc-400 mt-1">
             <span>Already have an account? </span>
-            <Link to="/login" className="auth-accent-link">
+            <Link to="/login" className="text-indigo-400 font-semibold hover:underline">
               Sign in
             </Link>
           </div>
         </div>
 
-        {/* Security badge footer */}
-        <div className="auth-security-note">
-          <ShieldCheck size={16} />
-          <span>Compliant Zero-Knowledge Architecture</span>
+        {/* Security Tag */}
+        <div className="flex items-center justify-center gap-1.5 text-xs text-zinc-500">
+          <ShieldCheck size={14} className="text-emerald-400" />
+          <span>Compliant Zero-Knowledge Storage Architecture</span>
         </div>
       </div>
     </div>

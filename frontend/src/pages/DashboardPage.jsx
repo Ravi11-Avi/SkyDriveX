@@ -2,14 +2,14 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useOutletContext } from "react-router-dom";
 import {
   Folder,
-  File,
   ChevronRight,
   HardDrive,
   UploadCloud,
   FolderPlus,
-  ArrowUpDown,
   Download,
   Search,
+  Sparkles,
+  Inbox,
 } from "lucide-react";
 import { folderApi, fileApi } from "../services/api";
 import { FolderCard } from "../components/drive/FolderCard";
@@ -38,197 +38,227 @@ export const DashboardPage = () => {
   const [folders, setFolders] = useState([]);
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [error, setError] = useState(null);
 
-  // Rename state
-  const [renameItem, setRenameItem] = useState(null);
-  const [renameName, setRenameName] = useState("");
+  // Delete target state for confirmation modal
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
-  // Delete modal state
-  const [deleteTarget, setDeleteTarget] = useState(null); // { item, type }
-
-  // Sync currentFolderId to layout
+  // Sync currentFolderId with parent Layout for global drag & drop uploads
   useEffect(() => {
     setCurrentFolderId(folderId || null);
   }, [folderId, setCurrentFolderId]);
 
-  const loadContents = async () => {
-    setLoading(true);
-    setError("");
-
-    try {
-      if (searchQuery) {
-        // Global search query
-        const res = await fileApi.getFiles({ search: searchQuery });
-        if (res.success) {
-          setFiles(res.files || []);
-          setFolders([]);
-          setCurrentFolder(null);
-          setBreadcrumbs([]);
-        }
-      } else {
+  // Load folder contents
+  useEffect(() => {
+    const fetchContents = async () => {
+      try {
+        setLoading(true);
+        setError(null);
         const res = await folderApi.getContents(folderId || null);
+
         if (res.success) {
           setCurrentFolder(res.currentFolder || null);
           setBreadcrumbs(res.breadcrumbs || []);
           setFolders(res.folders || []);
           setFiles(res.files || []);
         }
+      } catch (err) {
+        setError(err.message || "Failed to load drive items");
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      setError(err.message || "Failed to load directory contents");
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
-  useEffect(() => {
-    loadContents();
-  }, [folderId, searchQuery, refreshTrigger]);
+    fetchContents();
+  }, [folderId, refreshTrigger]);
 
-  const handleDownloadZip = (folder) => {
-    const url = folderApi.getZipDownloadUrl(folder._id);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `${folder.name}.zip`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
+  // Handle Favorites toggle
   const handleToggleFavoriteFolder = async (folder) => {
     try {
       await folderApi.update(folder._id, { isFavorite: !folder.isFavorite });
-      triggerRefresh();
+      setFolders((prev) =>
+        prev.map((f) => (f._id === folder._id ? { ...f, isFavorite: !f.isFavorite } : f))
+      );
     } catch (err) {
-      console.error(err);
+      alert(err.message || "Failed to update favorite");
     }
   };
 
   const handleToggleFavoriteFile = async (file) => {
     try {
       await fileApi.update(file._id, { isFavorite: !file.isFavorite });
-      triggerRefresh();
+      setFiles((prev) =>
+        prev.map((f) => (f._id === file._id ? { ...f, isFavorite: !f.isFavorite } : f))
+      );
     } catch (err) {
-      console.error(err);
+      alert(err.message || "Failed to update favorite");
     }
   };
 
-  const handleRenameSubmit = async (e) => {
-    e.preventDefault();
-    if (!renameName.trim() || !renameItem) return;
-
-    try {
-      if (renameItem.type === "folder") {
-        await folderApi.update(renameItem.item._id, { name: renameName.trim() });
-      } else {
-        await fileApi.update(renameItem.item._id, { name: renameName.trim() });
-      }
-      setRenameItem(null);
-      triggerRefresh();
-    } catch (err) {
-      alert(err.message || "Failed to rename");
-    }
-  };
-
+  // Trashing items
   const handleDeleteConfirm = async () => {
     if (!deleteTarget) return;
-
     try {
       if (deleteTarget.type === "folder") {
         await folderApi.trash(deleteTarget.item._id);
+        setFolders((prev) => prev.filter((f) => f._id !== deleteTarget.item._id));
       } else {
         await fileApi.trash(deleteTarget.item._id);
+        setFiles((prev) => prev.filter((f) => f._id !== deleteTarget.item._id));
       }
       setDeleteTarget(null);
       triggerRefresh();
     } catch (err) {
-      alert(err.message || "Failed to move to Trash");
+      alert(err.message || "Failed to move item to trash");
     }
   };
 
+  // Filtering search query
+  const query = (searchQuery || "").trim().toLowerCase();
+  const filteredFolders = folders.filter((f) => f.name.toLowerCase().includes(query));
+  const filteredFiles = files.filter(
+    (f) =>
+      f.name.toLowerCase().includes(query) ||
+      (f.category && f.category.toLowerCase().includes(query))
+  );
+
+  const isFolderEmpty = filteredFolders.length === 0 && filteredFiles.length === 0;
+
   return (
-    <div className="dashboard-page-container animate-fade-in">
-      {/* Breadcrumb Header Bar */}
-      <div className="dashboard-header-bar">
-        <div className="breadcrumbs-trail">
+    <div className="flex flex-col gap-6 max-w-7xl mx-auto">
+      {/* Breadcrumb Navigation & Action Toolbar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/[0.06]">
+        {/* Breadcrumb Trail */}
+        <div className="flex items-center gap-1.5 overflow-x-auto py-1 scrollbar-none text-sm">
           <button
-            className={`breadcrumb-node ${!folderId && !searchQuery ? "active" : ""}`}
             onClick={() => navigate("/")}
+            className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg font-medium transition-colors cursor-pointer ${
+              !folderId
+                ? "bg-indigo-500/10 text-indigo-400 border border-indigo-500/20"
+                : "text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.04]"
+            }`}
           >
-            <HardDrive size={16} />
+            <HardDrive size={15} />
             <span>My Drive</span>
           </button>
 
-          {searchQuery ? (
-            <>
-              <ChevronRight size={14} className="breadcrumb-separator" />
-              <span className="breadcrumb-node active">
-                <Search size={14} />
-                <span>Search: "{searchQuery}"</span>
-              </span>
-            </>
-          ) : (
-            breadcrumbs.map((b, idx) => (
-              <React.Fragment key={b._id}>
-                <ChevronRight size={14} className="breadcrumb-separator" />
+          {breadcrumbs.map((crumb, idx) => {
+            const isLast = idx === breadcrumbs.length - 1;
+            return (
+              <React.Fragment key={crumb._id}>
+                <ChevronRight size={13} className="text-zinc-600 shrink-0" />
                 <button
-                  className={`breadcrumb-node ${idx === breadcrumbs.length - 1 ? "active" : ""}`}
-                  onClick={() => navigate(`/folder/${b._id}`)}
+                  onClick={() => !isLast && navigate(`/folder/${crumb._id}`)}
+                  className={`px-2.5 py-1.5 rounded-lg font-medium truncate max-w-[160px] transition-colors cursor-pointer ${
+                    isLast
+                      ? "bg-indigo-500/10 text-indigo-400 border border-indigo-500/20"
+                      : "text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.04]"
+                  }`}
+                  title={crumb.name}
                 >
-                  <Folder size={15} />
-                  <span>{b.name}</span>
+                  {crumb.name}
                 </button>
               </React.Fragment>
-            ))
-          )}
+            );
+          })}
         </div>
 
-        {/* Action Shortcuts */}
-        <div className="header-action-shortcuts">
-          <button className="btn btn-secondary btn-sm" onClick={openCreateFolder}>
-            <FolderPlus size={16} />
+        {/* Action Buttons */}
+        <div className="flex items-center gap-2 shrink-0">
+          {folderId && (
+            <a
+              href={folderApi.getZipDownloadUrl(folderId)}
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-zinc-300 hover:text-white border border-white/[0.08] text-xs font-medium transition-all"
+              title="Download entire directory as ZIP"
+            >
+              <Download size={14} className="text-indigo-400" />
+              <span>Download ZIP</span>
+            </a>
+          )}
+
+          <button
+            onClick={openCreateFolder}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-zinc-300 hover:text-white border border-white/[0.08] text-xs font-medium transition-all cursor-pointer"
+          >
+            <FolderPlus size={14} />
             <span>New Folder</span>
           </button>
-          <button className="btn btn-primary btn-sm" onClick={openUpload}>
-            <UploadCloud size={16} />
+
+          <button
+            onClick={openUpload}
+            className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-400 hover:to-violet-500 text-white text-xs font-medium shadow-md shadow-indigo-500/20 transition-all cursor-pointer"
+          >
+            <UploadCloud size={14} />
             <span>Upload</span>
           </button>
         </div>
       </div>
 
-      {/* Loading state */}
+      {/* Main Content Explorer */}
       {loading ? (
-        <div className="page-loading-skeleton">
-          <div className="skeleton-spinner" />
-          <p>Loading files and folders...</p>
+        <div className="flex flex-col items-center justify-center py-20 gap-3 text-zinc-500">
+          <div className="w-8 h-8 rounded-full border-2 border-indigo-500 border-t-transparent animate-spin" />
+          <p className="text-xs font-medium">Loading workspace files...</p>
         </div>
       ) : error ? (
-        <div className="alert-error-box page-error">
-          <p>{error}</p>
+        <div className="p-6 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-300 text-sm">
+          {error}
+        </div>
+      ) : isFolderEmpty ? (
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+          <div className="w-16 h-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 mb-4">
+            <Inbox size={32} className="stroke-[1.6]" />
+          </div>
+          <h3 className="text-lg font-bold font-['Outfit'] text-white mb-1">
+            {searchQuery ? "No matching items found" : "This folder is empty"}
+          </h3>
+          <p className="text-xs text-zinc-400 max-w-sm mb-6">
+            {searchQuery
+              ? `No files or folders matched "${searchQuery}". Try a different keyword.`
+              : "Drag and drop any files here or click Upload to start adding content to your cloud drive."}
+          </p>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={openUpload}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium shadow-lg shadow-indigo-500/25 transition-all cursor-pointer"
+            >
+              <UploadCloud size={15} />
+              <span>Upload Files</span>
+            </button>
+            <button
+              onClick={openCreateFolder}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-zinc-300 border border-white/[0.08] text-xs font-medium transition-all cursor-pointer"
+            >
+              <FolderPlus size={15} />
+              <span>New Folder</span>
+            </button>
+          </div>
         </div>
       ) : (
-        <div className="dashboard-sections-stack">
-          {/* Folders Section */}
-          {folders.length > 0 && (
-            <section className="drive-section">
-              <div className="section-title-row">
-                <h3 className="section-title">Folders ({folders.length})</h3>
+        <div className="flex flex-col gap-8">
+          {/* Subfolders Section */}
+          {filteredFolders.length > 0 && (
+            <section className="flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+                  Folders ({filteredFolders.length})
+                </span>
               </div>
-              <div className="folders-grid-layout">
-                {folders.map((f) => (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                {filteredFolders.map((f) => (
                   <FolderCard
                     key={f._id}
                     folder={f}
                     onClick={() => navigate(`/folder/${f._id}`)}
-                    onShare={(f) => openShare(f, "folder")}
-                    onMove={(f) => openMove(f, "folder")}
-                    onRename={(f) => {
-                      setRenameItem({ item: f, type: "folder" });
-                      setRenameName(f.name);
+                    onShare={(folder) => openShare(folder, "folder")}
+                    onMove={(folder) => openMove(folder, "folder")}
+                    onRename={() => {}}
+                    onDelete={(folder) => setDeleteTarget({ type: "folder", item: folder })}
+                    onDownloadZip={() => {
+                      window.open(folderApi.getZipDownloadUrl(f._id), "_blank");
                     }}
-                    onDelete={(f) => setDeleteTarget({ item: f, type: "folder" })}
-                    onDownloadZip={handleDownloadZip}
                     onToggleFavorite={handleToggleFavoriteFolder}
                   />
                 ))}
@@ -237,51 +267,47 @@ export const DashboardPage = () => {
           )}
 
           {/* Files Section */}
-          {files.length > 0 && (
-            <section className="drive-section">
-              <div className="section-title-row">
-                <h3 className="section-title">Files ({files.length})</h3>
+          {filteredFiles.length > 0 && (
+            <section className="flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+                  Files ({filteredFiles.length})
+                </span>
               </div>
 
               {viewMode === "grid" ? (
-                <div className="files-grid-layout">
-                  {files.map((file) => (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3.5">
+                  {filteredFiles.map((file) => (
                     <FileCard
                       key={file._id}
                       file={file}
                       onPreview={openPreview}
                       onShare={(f) => openShare(f, "file")}
                       onMove={(f) => openMove(f, "file")}
-                      onRename={(f) => {
-                        setRenameItem({ item: f, type: "file" });
-                        setRenameName(f.name);
-                      }}
-                      onDelete={(f) => setDeleteTarget({ item: f, type: "file" })}
+                      onRename={() => {}}
+                      onDelete={(f) => setDeleteTarget({ type: "file", item: f })}
                       onToggleFavorite={handleToggleFavoriteFile}
                     />
                   ))}
                 </div>
               ) : (
-                <div className="files-list-layout">
-                  <div className="list-table-header">
-                    <span className="col-header-name">Name</span>
-                    <span className="col-header-category">Type</span>
-                    <span className="col-header-size">Size</span>
-                    <span className="col-header-date">Last Modified</span>
-                    <span className="col-header-actions">Actions</span>
+                <div className="flex flex-col gap-1.5">
+                  <div className="flex items-center justify-between px-4 py-2 text-[11px] font-semibold uppercase tracking-wider text-zinc-500">
+                    <span className="flex-1 mr-4">Name</span>
+                    <span className="hidden sm:block w-28">Category</span>
+                    <span className="hidden md:block w-24">Size</span>
+                    <span className="hidden lg:block w-32">Modified</span>
+                    <span className="w-16 text-right">Actions</span>
                   </div>
-                  {files.map((file) => (
+                  {filteredFiles.map((file) => (
                     <FileListRow
                       key={file._id}
                       file={file}
                       onPreview={openPreview}
                       onShare={(f) => openShare(f, "file")}
                       onMove={(f) => openMove(f, "file")}
-                      onRename={(f) => {
-                        setRenameItem({ item: f, type: "file" });
-                        setRenameName(f.name);
-                      }}
-                      onDelete={(f) => setDeleteTarget({ item: f, type: "file" })}
+                      onRename={() => {}}
+                      onDelete={(f) => setDeleteTarget({ type: "file", item: f })}
                       onToggleFavorite={handleToggleFavoriteFile}
                     />
                   ))}
@@ -289,60 +315,6 @@ export const DashboardPage = () => {
               )}
             </section>
           )}
-
-          {/* Empty State */}
-          {folders.length === 0 && files.length === 0 && (
-            <div className="empty-drive-state glass-panel">
-              <div className="empty-state-icon-glow">
-                <UploadCloud size={48} />
-              </div>
-              <h3>This directory is empty</h3>
-              <p>Drag and drop files here, or use the buttons below to get started</p>
-              <div className="empty-state-buttons">
-                <button className="btn btn-secondary" onClick={openCreateFolder}>
-                  <FolderPlus size={18} />
-                  <span>Create Folder</span>
-                </button>
-                <button className="btn btn-primary" onClick={openUpload}>
-                  <UploadCloud size={18} />
-                  <span>Upload Files</span>
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Rename Modal */}
-      {renameItem && (
-        <div className="modal-backdrop" onClick={() => setRenameItem(null)}>
-          <div className="modal-content glass-panel" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>Rename {renameItem.type === "folder" ? "Folder" : "File"}</h3>
-            </div>
-            <form onSubmit={handleRenameSubmit}>
-              <div className="modal-body">
-                <div className="input-group">
-                  <label className="input-label">New Name</label>
-                  <input
-                    type="text"
-                    className="input-field"
-                    value={renameName}
-                    onChange={(e) => setRenameName(e.target.value)}
-                    autoFocus
-                  />
-                </div>
-              </div>
-              <div className="modal-footer">
-                <button type="button" className="btn btn-secondary" onClick={() => setRenameItem(null)}>
-                  Cancel
-                </button>
-                <button type="submit" className="btn btn-primary">
-                  Save
-                </button>
-              </div>
-            </form>
-          </div>
         </div>
       )}
 
@@ -351,8 +323,8 @@ export const DashboardPage = () => {
         isOpen={Boolean(deleteTarget)}
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleDeleteConfirm}
-        title={`Move to Trash?`}
-        message={`Are you sure you want to move "${deleteTarget?.item?.name}" to Trash? Items in Trash are automatically cleared after 30 days.`}
+        title="Move to Trash?"
+        message={`Are you sure you want to move "${deleteTarget?.item?.name}" to Trash? Items remain in Trash for 30 days.`}
         confirmText="Move to Trash"
       />
     </div>

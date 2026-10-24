@@ -1,53 +1,54 @@
 import React, { useState, useEffect } from "react";
-import { Folder, FolderSymlink, X, Check, HardDrive } from "lucide-react";
+import { FolderSymlink, X, Folder, HardDrive, Check, Loader2 } from "lucide-react";
 import { folderApi, fileApi } from "../../services/api";
 
 export const MoveItemModal = ({ isOpen, onClose, item, itemType = "file", onMoved }) => {
   const [folders, setFolders] = useState([]);
-  const [selectedFolderId, setSelectedFolderId] = useState(null);
+  const [selectedFolderId, setSelectedFolderId] = useState(null); // null = My Drive root
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
     if (!isOpen) return;
+
     const fetchAllFolders = async () => {
-      setLoading(true);
-      setError("");
       try {
-        // Fetch root and subfolders
+        setLoading(true);
+        setError("");
         const res = await folderApi.getContents(null);
-        if (res.success && res.folders) {
-          // If item is a folder, filter out itself from destination candidates
-          const filtered = itemType === "folder" && item
-            ? res.folders.filter((f) => f._id !== item._id)
-            : res.folders;
-          setFolders(filtered);
+        if (res.success) {
+          // Exclude self if item is folder
+          const validFolders = (res.folders || []).filter(
+            (f) => itemType !== "folder" || f._id !== item?._id
+          );
+          setFolders(validFolders);
         }
       } catch (err) {
-        setError("Could not load folders list");
+        setError(err.message || "Failed to load directory tree");
       } finally {
         setLoading(false);
       }
     };
+
     fetchAllFolders();
   }, [isOpen, item, itemType]);
 
   if (!isOpen || !item) return null;
 
   const handleMove = async () => {
-    setSubmitting(true);
-    setError("");
-
     try {
+      setSubmitting(true);
+      setError("");
+
       if (itemType === "folder") {
         await folderApi.move(item._id, selectedFolderId);
       } else {
         await fileApi.move(item._id, selectedFolderId);
       }
 
-      onMoved();
       onClose();
+      if (onMoved) onMoved();
     } catch (err) {
       setError(err.message || "Failed to move item");
     } finally {
@@ -56,64 +57,96 @@ export const MoveItemModal = ({ isOpen, onClose, item, itemType = "file", onMove
   };
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal-content glass-panel" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <div className="modal-title-with-icon">
-            <div className="modal-header-icon primary-accent">
-              <FolderSymlink size={20} />
+    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
+      <div className="max-w-md w-full bg-[#0c101a] border border-white/10 rounded-3xl p-6 shadow-2xl flex flex-col gap-4 animate-in zoom-in-95 duration-150">
+        <div className="flex items-center justify-between pb-3 border-b border-white/[0.06]">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-amber-400/10 border border-amber-400/20 text-amber-400 flex items-center justify-center">
+              <FolderSymlink size={18} />
             </div>
-            <h3>Move "{item.name}"</h3>
+            <div>
+              <h3 className="text-base font-bold text-white leading-tight">Move Item</h3>
+              <p className="text-[11px] text-zinc-400 truncate max-w-[240px]">{item.name}</p>
+            </div>
           </div>
-          <button className="btn-icon" onClick={onClose}>
-            <X size={20} />
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-white/[0.06] transition-colors cursor-pointer"
+          >
+            <X size={16} />
           </button>
         </div>
 
-        <div className="modal-body">
-          {error && <div className="alert-error-box">{error}</div>}
+        {error && (
+          <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-xs">
+            {error}
+          </div>
+        )}
 
-          <p className="modal-instruction-text">Select destination location:</p>
-
-          <div className="folder-tree-picker">
+        <div className="flex flex-col gap-2">
+          <span className="text-xs font-semibold text-zinc-300">Select Destination</span>
+          <div className="max-h-60 overflow-y-auto scrollbar-thin flex flex-col gap-1.5 p-1">
             {/* Root Option */}
             <div
-              className={`folder-picker-item ${selectedFolderId === null ? "selected" : ""}`}
               onClick={() => setSelectedFolderId(null)}
+              className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl border transition-all cursor-pointer text-xs ${
+                selectedFolderId === null
+                  ? "bg-indigo-500/15 border-indigo-500 text-indigo-300 shadow-sm"
+                  : "bg-white/[0.03] border-white/[0.05] text-zinc-300 hover:bg-white/[0.06]"
+              }`}
             >
-              <div className="folder-picker-left">
-                <HardDrive size={18} className="folder-picker-icon" />
-                <span className="folder-picker-name">My Drive (Root Directory)</span>
+              <div className="flex items-center gap-2.5">
+                <HardDrive size={15} className="text-indigo-400" />
+                <span className="font-semibold">My Drive (Root Directory)</span>
               </div>
-              {selectedFolderId === null && <Check size={16} className="folder-picker-check" />}
+              {selectedFolderId === null && <Check size={14} className="text-indigo-400" />}
             </div>
 
-            {/* Folder list */}
             {loading ? (
-              <div className="picker-loading">Loading folders...</div>
+              <div className="flex items-center justify-center py-6 text-zinc-500">
+                <Loader2 size={20} className="animate-spin text-indigo-500" />
+              </div>
             ) : (
               folders.map((f) => (
                 <div
                   key={f._id}
-                  className={`folder-picker-item ${selectedFolderId === f._id ? "selected" : ""}`}
                   onClick={() => setSelectedFolderId(f._id)}
+                  className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl border transition-all cursor-pointer text-xs ${
+                    selectedFolderId === f._id
+                      ? "bg-indigo-500/15 border-indigo-500 text-indigo-300 shadow-sm"
+                      : "bg-white/[0.03] border-white/[0.05] text-zinc-300 hover:bg-white/[0.06]"
+                  }`}
                 >
-                  <div className="folder-picker-left">
-                    <Folder size={18} style={{ color: f.color || "#6366f1" }} className="folder-picker-icon" />
-                    <span className="folder-picker-name">{f.name}</span>
+                  <div className="flex items-center gap-2.5">
+                    <Folder
+                      size={15}
+                      style={{ color: f.color || "#6366f1" }}
+                      className="fill-current opacity-80"
+                    />
+                    <span className="font-medium truncate max-w-[220px]">{f.name}</span>
                   </div>
-                  {selectedFolderId === f._id && <Check size={16} className="folder-picker-check" />}
+                  {selectedFolderId === f._id && <Check size={14} className="text-indigo-400" />}
                 </div>
               ))
             )}
           </div>
         </div>
 
-        <div className="modal-footer">
-          <button type="button" className="btn btn-secondary" onClick={onClose} disabled={submitting}>
+        <div className="flex items-center justify-end gap-2 pt-2 border-t border-white/[0.06]">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={submitting}
+            className="px-4 py-2 rounded-xl bg-white/[0.04] text-zinc-300 hover:text-white text-xs font-medium cursor-pointer"
+          >
             Cancel
           </button>
-          <button type="button" className="btn btn-primary" onClick={handleMove} disabled={submitting}>
+          <button
+            type="button"
+            onClick={handleMove}
+            disabled={submitting}
+            className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-md shadow-indigo-500/25 transition-all cursor-pointer"
+          >
             {submitting ? "Moving..." : "Move Here"}
           </button>
         </div>

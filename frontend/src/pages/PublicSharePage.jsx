@@ -9,12 +9,8 @@ import {
   FileText,
   Folder,
   AlertTriangle,
-  Check,
   ShieldCheck,
-  Calendar,
-  Layers,
-  ArrowRight,
-  HardDrive,
+  Loader2,
 } from "lucide-react";
 import { shareApi, folderApi } from "../services/api";
 
@@ -142,10 +138,10 @@ export default function PublicSharePage() {
 
   if (loading) {
     return (
-      <div className="public-share-page">
-        <div className="glass-card public-share-card loading-box">
-          <div className="loading-spinner"></div>
-          <p>Decrypting shared resource...</p>
+      <div className="min-h-screen w-screen flex items-center justify-center bg-[#06080d] text-zinc-400">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 size={32} className="animate-spin text-indigo-500" />
+          <p className="text-xs font-medium">Decrypting shared resource...</p>
         </div>
       </div>
     );
@@ -153,14 +149,17 @@ export default function PublicSharePage() {
 
   if (error) {
     return (
-      <div className="public-share-page">
-        <div className="glass-card public-share-card error-box">
-          <div className="error-icon-circle">
-            <AlertTriangle size={36} />
+      <div className="min-h-screen w-screen flex items-center justify-center p-4 bg-[#06080d] text-slate-100">
+        <div className="max-w-md w-full p-8 rounded-3xl bg-[#0c0f17]/90 border border-white/[0.08] shadow-2xl flex flex-col items-center text-center gap-3">
+          <div className="w-14 h-14 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 flex items-center justify-center mb-2">
+            <AlertTriangle size={28} />
           </div>
-          <h2>Access Restricted</h2>
-          <p>{error}</p>
-          <Link to="/" className="btn btn-secondary" style={{ marginTop: "1rem" }}>
+          <h2 className="text-lg font-bold font-['Outfit'] text-white">Access Restricted</h2>
+          <p className="text-xs text-zinc-400 max-w-xs">{error}</p>
+          <Link
+            to="/"
+            className="mt-4 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-md transition-all"
+          >
             Return to SkyDriveX
           </Link>
         </div>
@@ -171,69 +170,73 @@ export default function PublicSharePage() {
   const { requiresPassword, itemType, item, subfolders, files, permission } = shareData;
 
   return (
-    <div className="public-share-page">
-      {/* Background ambient lighting */}
-      <div className="ambient-glow cyan-glow"></div>
-      <div className="ambient-glow purple-glow"></div>
+    <div className="min-h-screen w-screen flex flex-col bg-[#06080d] text-slate-100 relative overflow-x-hidden font-sans">
+      {/* Background Ambient Radial Glow */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-gradient-to-b from-indigo-500/15 via-violet-500/5 to-transparent rounded-full blur-3xl pointer-events-none" />
 
-      {/* Top Navbar */}
-      <header className="public-share-header">
-        <Link to="/" className="brand-logo">
-          <Cloud className="brand-icon" size={28} />
-          <span className="brand-name">SkyDrive<span className="brand-x">X</span></span>
+      {/* Top Header */}
+      <header className="h-16 px-6 bg-[#07090e]/80 backdrop-blur-xl border-b border-white/[0.06] flex items-center justify-between z-20">
+        <Link to="/" className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-600 flex items-center justify-center text-white shadow-md">
+            <Cloud size={18} className="stroke-[2.2]" />
+          </div>
+          <span className="font-['Outfit'] font-bold text-lg text-white">
+            SkyDrive<span className="text-indigo-400">X</span>
+          </span>
         </Link>
-        <div className="security-pill">
-          <ShieldCheck size={16} />
+
+        <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium">
+          <ShieldCheck size={14} />
           <span>Encrypted Public Transfer</span>
         </div>
       </header>
 
-      {/* Main Content Area */}
-      <main className="public-share-container">
+      {/* Main Container */}
+      <main className="flex-1 flex items-center justify-center p-4 sm:p-8 z-10">
         {requiresPassword ? (
-          /* Password Form */
-          <div className="glass-card public-share-card password-card">
-            <div className="password-icon-wrap">
-              <Lock size={32} />
+          /* Password Card */
+          <div className="w-full max-w-md p-8 rounded-3xl bg-[#0c0f17]/90 border border-white/[0.08] shadow-2xl backdrop-blur-2xl flex flex-col items-center text-center gap-5">
+            <div className="w-14 h-14 rounded-2xl bg-amber-400/10 border border-amber-400/20 text-amber-400 flex items-center justify-center shadow-lg">
+              <Lock size={26} />
             </div>
-            <h2>Password Protected</h2>
-            <p className="password-desc">
-              The owner has protected this {itemType === "file" ? "file" : "folder"} with a security passcode. Enter it below to unlock.
-            </p>
+            <div>
+              <h2 className="text-lg font-bold font-['Outfit'] text-white">Password Protected</h2>
+              <p className="text-xs text-zinc-400 mt-1">
+                The owner has secured this {itemType === "file" ? "file" : "folder"} with a passcode.
+              </p>
+            </div>
 
             {passwordError && (
-              <div className="auth-error-banner">
-                <AlertTriangle size={16} />
+              <div className="w-full p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-xs flex items-center gap-2">
+                <AlertTriangle size={15} className="shrink-0" />
                 <span>{passwordError}</span>
               </div>
             )}
 
-            <form onSubmit={handleVerifyPassword} className="password-form">
-              <div className="form-group">
-                <input
-                  type="password"
-                  className="form-input text-center"
-                  placeholder="Enter security password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  autoFocus
-                  required
-                />
-              </div>
+            <form onSubmit={handleVerifyPassword} className="w-full flex flex-col gap-3 text-xs">
+              <input
+                type="password"
+                required
+                autoFocus
+                placeholder="Enter security password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full text-center bg-[#0d101a] border border-white/[0.08] focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-zinc-100 placeholder-zinc-500 px-4 py-2.5 rounded-xl outline-none"
+              />
               <button
                 type="submit"
-                className="btn btn-primary btn-block btn-lg"
                 disabled={verifying || !password}
+                className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-400 hover:to-violet-500 text-white font-semibold text-xs shadow-lg shadow-indigo-500/25 active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-2"
               >
                 {verifying ? (
                   <>
-                    <div className="loading-spinner mini"></div>
-                    Verifying...
+                    <Loader2 size={15} className="animate-spin" />
+                    <span>Verifying...</span>
                   </>
                 ) : (
                   <>
-                    <Unlock size={18} />
-                    Unlock Content
+                    <Unlock size={15} />
+                    <span>Unlock Content</span>
                   </>
                 )}
               </button>
@@ -241,111 +244,105 @@ export default function PublicSharePage() {
           </div>
         ) : (
           /* Unlocked Content Card */
-          <div className="glass-card public-share-card content-card">
+          <div className="w-full max-w-xl p-8 rounded-3xl bg-[#0c0f17]/90 border border-white/[0.08] shadow-2xl backdrop-blur-2xl flex flex-col gap-6">
             {/* Header info */}
-            <div className="shared-item-header">
-              <div className="shared-item-badge">
-                {itemType === "folder" ? (
-                  <Folder size={28} className="text-accent" />
-                ) : (
-                  <FileText size={28} className="text-cyan" />
-                )}
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0">
+                {itemType === "folder" ? <Folder size={30} /> : <FileText size={30} />}
               </div>
-              <div className="shared-item-titles">
-                <h2 className="shared-item-title">{item?.name || "Shared Item"}</h2>
-                <div className="shared-item-meta">
+              <div className="flex flex-col min-w-0">
+                <h2 className="text-lg font-bold font-['Outfit'] text-white truncate">
+                  {item?.name || "Shared Item"}
+                </h2>
+                <div className="flex items-center gap-2 text-xs text-zinc-400 mt-0.5">
                   {itemType === "file" && (
                     <>
                       <span>{formatFileSize(item?.size)}</span>
-                      <span className="dot">•</span>
-                      <span className="badge badge-secondary">{item?.category || "File"}</span>
+                      <span>•</span>
+                      <span className="uppercase font-semibold text-indigo-400">
+                        {item?.category || "File"}
+                      </span>
                     </>
                   )}
                   {itemType === "folder" && (
                     <span>
-                      Shared Folder ({(subfolders?.length || 0) + (files?.length || 0)} items inside)
+                      Shared Folder ({(subfolders?.length || 0) + (files?.length || 0)} items)
                     </span>
                   )}
                 </div>
               </div>
             </div>
 
-            {/* Media Preview Box (Images/Videos/Audios) */}
+            {/* Media Preview Box */}
             {itemType === "file" && previewMediaUrl && (
-              <div className="media-preview-container">
+              <div className="w-full rounded-2xl bg-black/40 border border-white/[0.06] overflow-hidden flex items-center justify-center p-3">
                 {item?.category === "image" && (
                   <img
                     src={previewMediaUrl}
                     alt={item.name}
-                    className="shared-preview-img"
+                    className="max-h-72 w-auto object-contain rounded-xl shadow-lg"
                   />
                 )}
                 {item?.category === "video" && (
                   <video
                     src={previewMediaUrl}
                     controls
-                    className="shared-preview-video"
+                    className="max-h-72 w-full rounded-xl"
                   />
                 )}
                 {item?.category === "audio" && (
-                  <div className="audio-player-card">
-                    <audio src={previewMediaUrl} controls className="shared-preview-audio" />
-                  </div>
+                  <audio src={previewMediaUrl} controls className="w-full" />
                 )}
               </div>
             )}
 
-            {/* Folder Contents Explorer */}
+            {/* Subfolders & Files inside folder */}
             {itemType === "folder" && (
-              <div className="shared-folder-contents">
-                <h4>Folder Contents</h4>
-                <div className="shared-items-list">
-                  {subfolders?.map((sf) => (
-                    <div key={sf._id} className="shared-subitem">
-                      <Folder size={18} className="text-accent" />
-                      <span className="subitem-name">{sf.name}</span>
-                      <span className="badge badge-folder mini">Folder</span>
+              <div className="flex flex-col gap-2 max-h-56 overflow-y-auto scrollbar-thin p-3 rounded-2xl bg-black/30 border border-white/[0.06]">
+                {subfolders?.map((sf) => (
+                  <div key={sf._id} className="flex items-center gap-2.5 text-xs text-zinc-300 py-1">
+                    <Folder size={15} className="text-indigo-400 shrink-0" />
+                    <span className="truncate">{sf.name}</span>
+                  </div>
+                ))}
+                {files?.map((fl) => (
+                  <div key={fl._id} className="flex items-center justify-between text-xs text-zinc-300 py-1">
+                    <div className="flex items-center gap-2.5 truncate">
+                      <FileText size={15} className="text-zinc-500 shrink-0" />
+                      <span className="truncate">{fl.name}</span>
                     </div>
-                  ))}
-                  {files?.map((fl) => (
-                    <div key={fl._id} className="shared-subitem">
-                      <FileText size={18} className="text-secondary" />
-                      <span className="subitem-name">{fl.name}</span>
-                      <span className="subitem-size">{formatFileSize(fl.size)}</span>
-                    </div>
-                  ))}
-                  {(!subfolders || subfolders.length === 0) &&
-                    (!files || files.length === 0) && (
-                      <p className="empty-subtext">This folder is currently empty.</p>
-                    )}
-                </div>
+                    <span className="text-[11px] text-zinc-500 font-mono shrink-0 ml-2">
+                      {formatFileSize(fl.size)}
+                    </span>
+                  </div>
+                ))}
               </div>
             )}
 
-            {/* Download Action Footer */}
-            <div className="shared-actions-bar">
+            {/* Download Button */}
+            <div>
               {permission === "download" ? (
                 <button
-                  className="btn btn-primary btn-lg btn-download-hero"
                   onClick={handleDownload}
                   disabled={downloading}
+                  className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-400 hover:to-violet-500 text-white font-semibold text-sm shadow-xl shadow-indigo-500/25 active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-2"
                 >
                   {downloading ? (
                     <>
-                      <div className="loading-spinner mini"></div>
-                      Preparing Download...
+                      <Loader2 size={17} className="animate-spin" />
+                      <span>Preparing Download...</span>
                     </>
                   ) : (
                     <>
-                      <Download size={20} />
-                      {itemType === "folder" ? "Download Folder as ZIP" : "Download File"}
+                      <Download size={17} />
+                      <span>{itemType === "folder" ? "Download Folder as ZIP" : "Download File"}</span>
                     </>
                   )}
                 </button>
               ) : (
-                <div className="view-only-notice">
-                  <Eye size={18} />
-                  <span>The owner has made this link View Only. Downloads are disabled.</span>
+                <div className="p-3 rounded-xl bg-white/[0.04] text-zinc-400 text-xs text-center flex items-center justify-center gap-2">
+                  <Eye size={15} />
+                  <span>This link has view-only permissions. Downloads are disabled.</span>
                 </div>
               )}
             </div>
@@ -354,11 +351,11 @@ export default function PublicSharePage() {
       </main>
 
       {/* Footer */}
-      <footer className="public-share-footer">
-        <p>
-          Secure Cloud Storage Powered by{" "}
-          <Link to="/" className="footer-link">SkyDriveX</Link>
-        </p>
+      <footer className="py-4 text-center text-xs text-zinc-500 z-20">
+        <span>Powered by </span>
+        <Link to="/" className="text-indigo-400 font-semibold hover:underline">
+          SkyDriveX
+        </Link>
       </footer>
     </div>
   );

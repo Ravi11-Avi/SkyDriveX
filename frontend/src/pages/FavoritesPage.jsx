@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { Star, Folder, FileText, RefreshCw } from "lucide-react";
+import { Star, RefreshCw, Inbox } from "lucide-react";
 import { folderApi, fileApi } from "../services/api";
 import FolderCard from "../components/drive/FolderCard";
 import FileCard from "../components/drive/FileCard";
@@ -15,7 +15,6 @@ export default function FavoritesPage() {
   const [folders, setFolders] = useState([]);
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [viewMode, setViewMode] = useState("grid");
   const [feedback, setFeedback] = useState(null);
 
   // Modals state
@@ -111,78 +110,85 @@ export default function FavoritesPage() {
   const totalCount = folders.length + files.length;
 
   return (
-    <div className="dashboard-content">
+    <div className="flex flex-col gap-6 max-w-7xl mx-auto">
       {/* Toast Feedback */}
       {feedback && (
-        <div className={`floating-toast toast-${feedback.type}`}>
+        <div
+          className={`fixed bottom-6 right-6 z-50 px-4 py-2.5 rounded-2xl border text-sm font-medium shadow-2xl backdrop-blur-xl animate-in slide-in-from-bottom-5 duration-200 ${
+            feedback.type === "error"
+              ? "bg-red-500/10 border-red-500/20 text-red-300"
+              : "bg-emerald-500/10 border-emerald-500/20 text-emerald-300"
+          }`}
+        >
           {feedback.message}
         </div>
       )}
 
       {/* Page Header */}
-      <div className="page-header">
-        <div className="page-title-group">
-          <div className="page-icon-badge gold">
-            <Star size={24} className="star-filled" />
+      <div className="flex items-center justify-between pb-4 border-b border-white/[0.06]">
+        <div className="flex items-center gap-3.5">
+          <div className="w-11 h-11 rounded-2xl flex items-center justify-center bg-amber-400/10 text-amber-400 border border-amber-400/20">
+            <Star size={22} className="stroke-[2.2] fill-amber-400/20" />
           </div>
           <div>
-            <h1 className="page-title">Favorites</h1>
-            <p className="page-subtitle">
-              Quick access to your starred files and folders ({totalCount} items)
+            <h1 className="text-xl font-bold font-['Outfit'] text-white">
+              Starred Items
+            </h1>
+            <p className="text-xs text-zinc-400">
+              Quick access to your {totalCount} favorite {totalCount === 1 ? "item" : "items"}
             </p>
           </div>
         </div>
 
-        <div className="header-actions">
-          <button
-            className="btn btn-secondary btn-icon"
-            onClick={loadFavorites}
-            title="Refresh"
-          >
-            <RefreshCw size={17} className={loading ? "spin" : ""} />
-          </button>
-        </div>
+        <button
+          onClick={loadFavorites}
+          title="Refresh"
+          className="p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-zinc-400 hover:text-white border border-white/[0.08] transition-colors cursor-pointer"
+        >
+          <RefreshCw size={15} className={loading ? "animate-spin text-indigo-400" : ""} />
+        </button>
       </div>
 
       {loading ? (
-        <div className="loading-state">
-          <div className="loading-spinner"></div>
-          <p>Loading your favorite items...</p>
+        <div className="flex flex-col items-center justify-center py-20 gap-3 text-zinc-500">
+          <div className="w-8 h-8 rounded-full border-2 border-indigo-500 border-t-transparent animate-spin" />
+          <p className="text-xs font-medium">Loading favorites...</p>
         </div>
       ) : totalCount === 0 ? (
-        <div className="empty-state">
-          <div className="empty-icon-wrap gold">
-            <Star size={44} />
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+          <div className="w-16 h-16 rounded-2xl bg-amber-400/10 border border-amber-400/20 flex items-center justify-center text-amber-400 mb-4">
+            <Star size={32} className="stroke-[1.6]" />
           </div>
-          <h3>No favorite items yet</h3>
-          <p>
-            Star any important file or folder from your drive to quickly access it here anytime.
+          <h3 className="text-lg font-bold font-['Outfit'] text-white mb-1">
+            No favorite items yet
+          </h3>
+          <p className="text-xs text-zinc-400 max-w-sm mb-6">
+            Click the star icon on any folder or file across your drive to bookmark it here for quick access.
           </p>
           <button
-            className="btn btn-primary"
             onClick={() => navigate("/")}
-            style={{ marginTop: "1rem" }}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium shadow-lg shadow-indigo-500/25 transition-all cursor-pointer"
           >
             Browse My Drive
           </button>
         </div>
       ) : (
-        <div className="drive-sections">
-          {/* Folders Section */}
+        <div className="flex flex-col gap-8">
+          {/* Starred Folders */}
           {folders.length > 0 && (
-            <section className="drive-section">
-              <div className="section-header">
-                <h2>Starred Folders ({folders.length})</h2>
-              </div>
-              <div className="folders-grid">
-                {folders.map((folder) => (
+            <section className="flex flex-col gap-3">
+              <span className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+                Starred Folders ({folders.length})
+              </span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                {folders.map((f) => (
                   <FolderCard
-                    key={folder._id}
-                    folder={folder}
-                    onOpen={() => navigate(`/folder/${folder._id}`)}
+                    key={f._id}
+                    folder={f}
+                    onClick={() => navigate(`/folder/${f._id}`)}
+                    onShare={(folder) => setShareItem({ type: "folder", item: folder })}
+                    onMove={(folder) => setMoveItem({ type: "folder", item: folder })}
                     onRename={() => {}}
-                    onShare={(f) => setShareItem({ type: "folder", item: f })}
-                    onMove={(f) => setMoveItem({ type: "folder", item: f })}
                     onTrash={handleTrashFolder}
                     onToggleFavorite={handleToggleFavoriteFolder}
                   />
@@ -191,109 +197,68 @@ export default function FavoritesPage() {
             </section>
           )}
 
-          {/* Files Section */}
+          {/* Starred Files */}
           {files.length > 0 && (
-            <section className="drive-section">
-              <div className="section-header">
-                <h2>Starred Files ({files.length})</h2>
+            <section className="flex flex-col gap-3">
+              <span className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+                Starred Files ({files.length})
+              </span>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3.5">
+                {files.map((file) => (
+                  <FileCard
+                    key={file._id}
+                    file={file}
+                    onPreview={(f) => setPreviewFile(f)}
+                    onShare={(f) => setShareItem({ type: "file", item: f })}
+                    onMove={(f) => setMoveItem({ type: "file", item: f })}
+                    onRename={() => {}}
+                    onTrash={handleTrashFile}
+                    onToggleFavorite={handleToggleFavoriteFile}
+                  />
+                ))}
               </div>
-
-              {viewMode === "grid" ? (
-                <div className="files-grid">
-                  {files.map((file) => (
-                    <FileCard
-                      key={file._id}
-                      file={file}
-                      onPreview={(f) => setPreviewFile(f)}
-                      onDownload={() => {}}
-                      onShare={(f) => setShareItem({ type: "file", item: f })}
-                      onRename={() => {}}
-                      onMove={(f) => setMoveItem({ type: "file", item: f })}
-                      onTrash={handleTrashFile}
-                      onToggleFavorite={handleToggleFavoriteFile}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <div className="files-table-container">
-                  <table className="files-table">
-                    <thead>
-                      <tr>
-                        <th>Name</th>
-                        <th>Category</th>
-                        <th>Size</th>
-                        <th>Modified</th>
-                        <th className="text-right">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {files.map((file) => (
-                        <FileListRow
-                          key={file._id}
-                          file={file}
-                          onPreview={(f) => setPreviewFile(f)}
-                          onDownload={() => {}}
-                          onShare={(f) => setShareItem({ type: "file", item: f })}
-                          onRename={() => {}}
-                          onMove={(f) => setMoveItem({ type: "file", item: f })}
-                          onTrash={handleTrashFile}
-                          onToggleFavorite={handleToggleFavoriteFile}
-                        />
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
             </section>
           )}
         </div>
       )}
 
-      {/* Share Modal */}
+      {/* Modals */}
       {shareItem && (
         <ShareModal
+          isOpen={true}
           item={shareItem.item}
           itemType={shareItem.type}
           onClose={() => setShareItem(null)}
-          onSuccess={() => {
-            showToast("Share link created successfully");
-          }}
         />
       )}
 
-      {/* Preview Modal */}
       {previewFile && (
         <FilePreviewModal
+          isOpen={true}
           file={previewFile}
           onClose={() => setPreviewFile(null)}
-          onDownload={() => {}}
           onShare={(f) => setShareItem({ type: "file", item: f })}
         />
       )}
 
-      {/* Move Item Modal */}
       {moveItem && (
         <MoveItemModal
+          isOpen={true}
           item={moveItem.item}
           itemType={moveItem.type}
           onClose={() => setMoveItem(null)}
-          onSuccess={() => {
-            loadFavorites();
-            showToast(`Moved ${moveItem.type} successfully`);
-          }}
+          onMoved={loadFavorites}
         />
       )}
 
-      {/* Confirmation Modal */}
       {confirmModal && (
         <ConfirmModal
           isOpen={true}
           title={confirmModal.title}
           message={confirmModal.message}
-          confirmLabel={confirmModal.confirmLabel}
-          isDestructive={confirmModal.isDestructive}
+          confirmText={confirmModal.confirmLabel}
           onConfirm={confirmModal.onConfirm}
-          onCancel={() => setConfirmModal(null)}
+          onClose={() => setConfirmModal(null)}
         />
       )}
     </div>

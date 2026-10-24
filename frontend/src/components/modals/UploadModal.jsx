@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import { UploadCloud, X, File, CheckCircle2, AlertCircle } from "lucide-react";
+import { UploadCloud, X, FileText, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 import { fileApi } from "../../services/api";
 
 export const UploadModal = ({ isOpen, onClose, currentFolderId, onUploadComplete }) => {
@@ -12,13 +12,8 @@ export const UploadModal = ({ isOpen, onClose, currentFolderId, onUploadComplete
   if (!isOpen) return null;
 
   const handleFileChange = (e) => {
-    if (e.target.files && e.target.files.length > 0) {
-      const filesArray = Array.from(e.target.files);
-      if (filesArray.length > 10) {
-        setError("You can upload a maximum of 10 files at once");
-        return;
-      }
-      setSelectedFiles(filesArray);
+    if (e.target.files) {
+      setSelectedFiles(Array.from(e.target.files));
       setError("");
     }
   };
@@ -28,144 +23,164 @@ export const UploadModal = ({ isOpen, onClose, currentFolderId, onUploadComplete
   };
 
   const formatFileSize = (bytes) => {
-    if (bytes === 0) return "0 Bytes";
-    const k = 1024;
-    const sizes = ["Bytes", "KB", "MB", "GB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+    if (!bytes && bytes !== 0) return "--";
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+    return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
   };
 
   const handleUpload = async () => {
-    if (selectedFiles.length === 0) {
-      setError("Please select at least one file");
-      return;
-    }
-
-    setUploading(true);
-    setProgress(20);
-    setError("");
+    if (selectedFiles.length === 0) return;
 
     try {
-      const formData = new FormData();
-      if (currentFolderId) {
-        formData.append("folder", currentFolderId);
-      }
+      setUploading(true);
+      setError("");
+      setProgress(20);
 
+      const formData = new FormData();
       selectedFiles.forEach((file) => {
         formData.append("files", file);
       });
 
+      if (currentFolderId) {
+        formData.append("folder", currentFolderId);
+      }
+
       setProgress(60);
-      const res = await fileApi.upload(formData);
+      await fileApi.upload(formData);
       setProgress(100);
 
-      if (res.success && res.files) {
-        onUploadComplete(res.files);
+      setTimeout(() => {
         setSelectedFiles([]);
+        setProgress(0);
         onClose();
-      }
+        if (onUploadComplete) onUploadComplete();
+      }, 500);
     } catch (err) {
       setError(err.message || "Failed to upload files");
+      setProgress(0);
     } finally {
       setUploading(false);
     }
   };
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal-content glass-panel" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <div className="modal-title-with-icon">
-            <div className="modal-header-icon primary-accent">
-              <UploadCloud size={20} />
+    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
+      <div className="max-w-lg w-full bg-[#0c101a] border border-white/10 rounded-3xl p-6 shadow-2xl flex flex-col gap-5 animate-in zoom-in-95 duration-150">
+        <div className="flex items-center justify-between pb-3 border-b border-white/[0.06]">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center">
+              <UploadCloud size={18} />
             </div>
-            <h3>Upload Files</h3>
+            <h3 className="text-base font-bold text-white">Upload Files</h3>
           </div>
-          <button className="btn-icon" onClick={onClose} disabled={uploading}>
-            <X size={20} />
+          <button
+            onClick={onClose}
+            disabled={uploading}
+            className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-white/[0.06] transition-colors cursor-pointer"
+          >
+            <X size={16} />
           </button>
         </div>
 
-        <div className="modal-body">
-          {error && (
-            <div className="alert-error-box">
-              <AlertCircle size={16} />
-              <span>{error}</span>
-            </div>
-          )}
-
-          {/* Hidden native input */}
-          <input
-            type="file"
-            ref={fileInputRef}
-            multiple
-            onChange={handleFileChange}
-            style={{ display: "none" }}
-          />
-
-          {/* Dropzone click area */}
-          <div
-            className="modal-dropzone"
-            onClick={() => fileInputRef.current?.click()}
-          >
-            <div className="dropzone-glow-icon">
-              <UploadCloud size={38} />
-            </div>
-            <h4>Click to browse files</h4>
-            <p>Support for images, videos, documents, audio, code & archives up to 100MB</p>
+        {error && (
+          <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-xs flex items-center gap-2">
+            <AlertCircle size={15} className="shrink-0" />
+            <span>{error}</span>
           </div>
+        )}
 
-          {/* Selected files list */}
-          {selectedFiles.length > 0 && (
-            <div className="selected-files-list">
-              <div className="selected-files-title">
-                <span>Selected ({selectedFiles.length}/10):</span>
-                <span>
-                  Total: {formatFileSize(selectedFiles.reduce((acc, f) => acc + f.size, 0))}
-                </span>
-              </div>
-              {selectedFiles.map((f, idx) => (
-                <div key={idx} className="file-chip-item">
-                  <File size={16} className="file-chip-icon" />
-                  <span className="file-chip-name">{f.name}</span>
-                  <span className="file-chip-size">{formatFileSize(f.size)}</span>
+        {/* Dropzone */}
+        <div
+          onClick={() => fileInputRef.current?.click()}
+          className="border-2 border-dashed border-white/10 hover:border-indigo-500/50 bg-[#0d101a] hover:bg-[#111624] rounded-2xl p-8 flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-200"
+        >
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            className="hidden"
+            onChange={handleFileChange}
+          />
+          <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center mb-3">
+            <UploadCloud size={24} />
+          </div>
+          <p className="text-sm font-semibold text-white">
+            Click to browse or drag files here
+          </p>
+          <p className="text-[11px] text-zinc-500 mt-1">
+            Supports any file format: Documents, Media, Compressed Archives, Code
+          </p>
+        </div>
+
+        {/* Selected Files List */}
+        {selectedFiles.length > 0 && (
+          <div className="flex flex-col gap-2 max-h-48 overflow-y-auto scrollbar-thin">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
+              Selected Files ({selectedFiles.length})
+            </span>
+            {selectedFiles.map((f, i) => (
+              <div
+                key={i}
+                className="flex items-center justify-between px-3 py-2 rounded-xl bg-white/[0.03] border border-white/[0.05] text-xs"
+              >
+                <div className="flex items-center gap-2.5 truncate flex-1 mr-3">
+                  <FileText size={15} className="text-indigo-400 shrink-0" />
+                  <span className="text-zinc-200 truncate font-medium">{f.name}</span>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="text-[11px] font-mono text-zinc-500">
+                    {formatFileSize(f.size)}
+                  </span>
                   {!uploading && (
                     <button
-                      type="button"
-                      className="file-chip-remove"
-                      onClick={() => removeFile(idx)}
+                      onClick={() => removeFile(i)}
+                      className="p-1 rounded text-zinc-500 hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer"
                     >
-                      <X size={14} />
+                      <X size={13} />
                     </button>
                   )}
                 </div>
-              ))}
-            </div>
-          )}
-
-          {/* Progress bar */}
-          {uploading && (
-            <div className="upload-progress-box">
-              <div className="upload-progress-label">
-                <span>Uploading to SkyDriveX...</span>
-                <span>{progress}%</span>
               </div>
-              <div className="upload-progress-bar-bg">
-                <div className="upload-progress-bar-fill" style={{ width: `${progress}%` }} />
-              </div>
-            </div>
-          )}
-        </div>
+            ))}
+          </div>
+        )}
 
-        <div className="modal-footer">
-          <button type="button" className="btn btn-secondary" onClick={onClose} disabled={uploading}>
+        {/* Progress bar */}
+        {uploading && (
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center justify-between text-xs text-zinc-400">
+              <span className="flex items-center gap-1.5 font-medium">
+                <Loader2 size={13} className="animate-spin text-indigo-400" />
+                Uploading to SkyDriveX...
+              </span>
+              <span className="font-semibold text-white">{progress}%</span>
+            </div>
+            <div className="w-full bg-zinc-800 h-2 rounded-full overflow-hidden">
+              <div
+                className="bg-gradient-to-r from-indigo-500 to-violet-500 h-full rounded-full transition-all duration-300"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Footer */}
+        <div className="flex items-center justify-end gap-2 pt-2 border-t border-white/[0.06]">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={uploading}
+            className="px-4 py-2 rounded-xl bg-white/[0.04] text-zinc-300 hover:text-white text-xs font-medium cursor-pointer"
+          >
             Cancel
           </button>
           <button
             type="button"
-            className="btn btn-primary"
             onClick={handleUpload}
             disabled={uploading || selectedFiles.length === 0}
+            className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white text-xs font-semibold shadow-md shadow-indigo-500/25 transition-all cursor-pointer"
           >
             {uploading ? "Uploading..." : `Upload ${selectedFiles.length > 0 ? `(${selectedFiles.length})` : ""}`}
           </button>

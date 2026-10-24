@@ -14,7 +14,6 @@ import {
   FileText,
   RefreshCw,
   Power,
-  Clock,
 } from "lucide-react";
 import { shareApi } from "../services/api";
 import ConfirmModal from "../components/modals/ConfirmModal";
@@ -113,155 +112,167 @@ export default function SharesPage() {
   };
 
   return (
-    <div className="dashboard-content">
+    <div className="flex flex-col gap-6 max-w-7xl mx-auto">
       {/* Toast Feedback */}
       {feedback && (
-        <div className={`floating-toast toast-${feedback.type}`}>
+        <div
+          className={`fixed bottom-6 right-6 z-50 px-4 py-2.5 rounded-2xl border text-sm font-medium shadow-2xl backdrop-blur-xl animate-in slide-in-from-bottom-5 duration-200 ${
+            feedback.type === "error"
+              ? "bg-red-500/10 border-red-500/20 text-red-300"
+              : "bg-emerald-500/10 border-emerald-500/20 text-emerald-300"
+          }`}
+        >
           {feedback.message}
         </div>
       )}
 
       {/* Page Header */}
-      <div className="page-header">
-        <div className="page-title-group">
-          <div className="page-icon-badge cyan">
-            <Share2 size={24} />
+      <div className="flex items-center justify-between pb-4 border-b border-white/[0.06]">
+        <div className="flex items-center gap-3.5">
+          <div className="w-11 h-11 rounded-2xl flex items-center justify-center bg-cyan-400/10 text-cyan-400 border border-cyan-400/20">
+            <Share2 size={22} className="stroke-[2.2]" />
           </div>
           <div>
-            <h1 className="page-title">Shared Links</h1>
-            <p className="page-subtitle">
-              Manage, monitor, and revoke your public and password-protected shareable links ({shares.length} active)
+            <h1 className="text-xl font-bold font-['Outfit'] text-white">
+              Shared Links Manager
+            </h1>
+            <p className="text-xs text-zinc-400">
+              Manage public and password-protected transfer links ({shares.length} created)
             </p>
           </div>
         </div>
 
-        <div className="header-actions">
-          <button
-            className="btn btn-secondary btn-icon"
-            onClick={loadShares}
-            title="Refresh links"
-          >
-            <RefreshCw size={17} className={loading ? "spin" : ""} />
-          </button>
-        </div>
+        <button
+          onClick={loadShares}
+          title="Refresh links"
+          className="p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-zinc-400 hover:text-white border border-white/[0.08] transition-colors cursor-pointer"
+        >
+          <RefreshCw size={15} className={loading ? "animate-spin text-indigo-400" : ""} />
+        </button>
       </div>
 
       {loading ? (
-        <div className="loading-state">
-          <div className="loading-spinner"></div>
-          <p>Loading your shared links...</p>
+        <div className="flex flex-col items-center justify-center py-20 gap-3 text-zinc-500">
+          <div className="w-8 h-8 rounded-full border-2 border-indigo-500 border-t-transparent animate-spin" />
+          <p className="text-xs font-medium">Loading share links...</p>
         </div>
       ) : shares.length === 0 ? (
-        <div className="empty-state">
-          <div className="empty-icon-wrap cyan">
-            <Share2 size={44} />
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+          <div className="w-16 h-16 rounded-2xl bg-cyan-400/10 border border-cyan-400/20 flex items-center justify-center text-cyan-400 mb-4">
+            <Share2 size={32} className="stroke-[1.6]" />
           </div>
-          <h3>No shared links yet</h3>
-          <p>
-            You haven't generated any share links. Select any file or folder from your drive and click "Share" to create one.
+          <h3 className="text-lg font-bold font-['Outfit'] text-white mb-1">
+            No shared links active
+          </h3>
+          <p className="text-xs text-zinc-400 max-w-sm mb-6">
+            Generate shareable links from any file or folder card to send files securely with password protection or expiration timers.
           </p>
         </div>
       ) : (
-        <div className="shares-table-container">
-          <table className="files-table">
+        <div className="overflow-x-auto rounded-2xl bg-[#0c0f17]/90 border border-white/[0.07] shadow-xl">
+          <table className="w-full text-left text-xs">
             <thead>
-              <tr>
-                <th>Shared Item</th>
-                <th>Security</th>
-                <th>Permission</th>
-                <th>Status</th>
-                <th>Expires</th>
-                <th>Stats</th>
-                <th className="text-right">Actions</th>
+              <tr className="border-b border-white/[0.06] text-zinc-500 uppercase tracking-wider text-[10px]">
+                <th className="py-3.5 px-4">Shared Item</th>
+                <th className="py-3.5 px-4">Security</th>
+                <th className="py-3.5 px-4">Permission</th>
+                <th className="py-3.5 px-4">Status</th>
+                <th className="py-3.5 px-4">Expires</th>
+                <th className="py-3.5 px-4">Traffic</th>
+                <th className="py-3.5 px-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-white/[0.04]">
               {shares.map((share) => {
                 const expired = isExpired(share.expiresAt);
                 const itemName = share.item?.name || "Shared Item";
                 const isFolder = share.itemType === "folder";
 
                 return (
-                  <tr key={share._id} className="table-row">
-                    <td>
-                      <div className="row-item-info">
+                  <tr key={share._id} className="hover:bg-white/[0.02] transition-colors">
+                    <td className="py-3 px-4">
+                      <div className="flex items-center gap-3">
                         <div
-                          className="folder-icon-circle mini"
-                          style={{
-                            backgroundColor: isFolder
-                              ? "rgba(99, 102, 241, 0.15)"
-                              : "rgba(56, 189, 248, 0.15)",
-                            color: isFolder ? "#818cf8" : "#38bdf8",
-                          }}
+                          className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                            isFolder ? "bg-indigo-500/10 text-indigo-400" : "bg-sky-500/10 text-sky-400"
+                          }`}
                         >
-                          {isFolder ? <Folder size={18} /> : <FileText size={18} />}
+                          {isFolder ? <Folder size={16} /> : <FileText size={16} />}
                         </div>
-                        <div>
-                          <span className="row-item-name font-medium">{itemName}</span>
-                          <div className="share-token-sub">
-                            <span>/share/{share.token.slice(0, 10)}...</span>
-                          </div>
+                        <div className="flex flex-col min-w-0">
+                          <span className="font-semibold text-zinc-100 truncate max-w-[200px]">
+                            {itemName}
+                          </span>
+                          <span className="text-[10px] text-zinc-500 font-mono">
+                            /share/{share.token.slice(0, 10)}...
+                          </span>
                         </div>
                       </div>
                     </td>
 
-                    <td>
+                    <td className="py-3 px-4">
                       {share.isPasswordProtected ? (
-                        <span className="badge badge-warning flex-center gap-1">
-                          <Lock size={12} /> Password
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-400/10 text-amber-400 border border-amber-400/20">
+                          <Lock size={10} /> Password
                         </span>
                       ) : (
-                        <span className="badge badge-secondary flex-center gap-1">
-                          <Unlock size={12} /> Public
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-zinc-500/10 text-zinc-400 border border-zinc-500/20">
+                          <Unlock size={10} /> Public
                         </span>
                       )}
                     </td>
 
-                    <td>
-                      <span className="badge badge-primary">
+                    <td className="py-3 px-4">
+                      <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">
                         {share.permission === "download" ? "Download" : "View Only"}
                       </span>
                     </td>
 
-                    <td>
+                    <td className="py-3 px-4">
                       {expired ? (
-                        <span className="badge badge-danger">Expired</span>
+                        <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold bg-red-500/10 text-red-400 border border-red-500/20">
+                          Expired
+                        </span>
                       ) : share.isActive ? (
-                        <span className="badge badge-success">Active</span>
+                        <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                          Active
+                        </span>
                       ) : (
-                        <span className="badge badge-secondary">Disabled</span>
+                        <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold bg-zinc-500/10 text-zinc-400 border border-zinc-500/20">
+                          Disabled
+                        </span>
                       )}
                     </td>
 
-                    <td className="text-secondary text-sm">
-                      <div className="flex-center gap-1">
-                        <Calendar size={13} />
+                    <td className="py-3 px-4 text-zinc-400">
+                      <div className="flex items-center gap-1 text-[11px]">
+                        <Calendar size={12} className="text-zinc-500" />
                         {formatDate(share.expiresAt)}
                       </div>
                     </td>
 
-                    <td>
-                      <div className="share-stats-pills">
-                        <span title="Views" className="stat-pill">
-                          <Eye size={13} /> {share.views || 0}
+                    <td className="py-3 px-4">
+                      <div className="flex items-center gap-2">
+                        <span className="inline-flex items-center gap-1 text-[11px] text-zinc-400">
+                          <Eye size={12} className="text-zinc-500" /> {share.views || 0}
                         </span>
-                        <span title="Downloads" className="stat-pill">
-                          <Download size={13} /> {share.downloads || 0}
+                        <span className="inline-flex items-center gap-1 text-[11px] text-zinc-400">
+                          <Download size={12} className="text-zinc-500" /> {share.downloads || 0}
                         </span>
                       </div>
                     </td>
 
-                    <td className="text-right">
-                      <div className="row-actions">
+                    <td className="py-3 px-4 text-right">
+                      <div className="flex items-center justify-end gap-1">
                         <button
-                          className="btn-action-round copy"
                           onClick={() => handleCopyLink(share)}
+                          className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-white/[0.08] transition-colors cursor-pointer"
                           title="Copy Link"
                         >
                           {copiedId === share._id ? (
-                            <Check size={16} className="text-success" />
+                            <Check size={14} className="text-emerald-400" />
                           ) : (
-                            <Copy size={16} />
+                            <Copy size={14} />
                           )}
                         </button>
 
@@ -269,28 +280,32 @@ export default function SharesPage() {
                           href={`/share/${share.token}`}
                           target="_blank"
                           rel="noreferrer"
-                          className="btn-action-round link"
-                          title="Open public page"
+                          className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-white/[0.08] transition-colors"
+                          title="Open guest page"
                         >
-                          <ExternalLink size={16} />
+                          <ExternalLink size={14} />
                         </a>
 
                         <button
-                          className={`btn-action-round power ${share.isActive ? "active" : ""}`}
                           onClick={() => handleToggleActive(share)}
-                          title={share.isActive ? "Disable Link" : "Enable Link"}
                           disabled={processingId === share._id}
+                          className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                            share.isActive
+                              ? "text-emerald-400 hover:bg-emerald-400/10"
+                              : "text-zinc-600 hover:text-zinc-400 hover:bg-white/[0.08]"
+                          }`}
+                          title={share.isActive ? "Disable Link" : "Enable Link"}
                         >
-                          <Power size={16} />
+                          <Power size={14} />
                         </button>
 
                         <button
-                          className="btn-action-round delete"
                           onClick={() => handleRevokeShare(share)}
-                          title="Revoke Share Link"
                           disabled={processingId === share._id}
+                          className="p-1.5 rounded-lg text-zinc-500 hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer"
+                          title="Revoke Share Link"
                         >
-                          <Trash2 size={16} />
+                          <Trash2 size={14} />
                         </button>
                       </div>
                     </td>
@@ -308,10 +323,9 @@ export default function SharesPage() {
           isOpen={true}
           title={confirmModal.title}
           message={confirmModal.message}
-          confirmLabel={confirmModal.confirmLabel}
-          isDestructive={confirmModal.isDestructive}
+          confirmText={confirmModal.confirmLabel}
           onConfirm={confirmModal.onConfirm}
-          onCancel={() => setConfirmModal(null)}
+          onClose={() => setConfirmModal(null)}
         />
       )}
     </div>
