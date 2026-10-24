@@ -51,7 +51,7 @@ export const FolderCard = ({
   return (
     <div
       onClick={handleOpen}
-      className="group relative flex items-center justify-between p-4 rounded-2xl bg-[#0c0f17]/90 hover:bg-[#111624] border border-white/[0.07] hover:border-indigo-500/35 transition-all duration-200 cursor-pointer shadow-lg shadow-black/20 hover:shadow-indigo-500/5 hover:-translate-y-0.5"
+      className="group relative flex items-center justify-between p-4 rounded-2xl bg-white dark:bg-[#0c0f17]/90 hover:bg-slate-50 dark:hover:bg-[#111624] border border-slate-200/80 dark:border-white/[0.07] hover:border-indigo-500/40 transition-all duration-200 cursor-pointer shadow-xs hover:shadow-md hover:-translate-y-0.5 select-none"
     >
       <div className="flex items-center gap-3.5 min-w-0 flex-1">
         <div
@@ -62,10 +62,10 @@ export const FolderCard = ({
         </div>
 
         <div className="flex flex-col min-w-0 flex-1">
-          <h4 className="text-sm font-semibold text-zinc-100 group-hover:text-white truncate">
+          <h4 className="text-sm font-semibold text-slate-900 group-hover:text-indigo-600 dark:text-zinc-100 dark:group-hover:text-white truncate">
             {folder.name}
           </h4>
-          <span className="text-[11px] text-zinc-500 font-medium">Folder</span>
+          <span className="text-[11px] text-slate-500 dark:text-zinc-500 font-medium">Folder</span>
         </div>
       </div>
 
@@ -79,7 +79,7 @@ export const FolderCard = ({
           className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
             folder.isFavorite
               ? "text-amber-400 bg-amber-400/10"
-              : "text-zinc-600 hover:text-amber-400 hover:bg-white/[0.04]"
+              : "text-slate-300 dark:text-zinc-600 hover:text-amber-400 hover:bg-slate-100 dark:hover:bg-white/[0.04]"
           }`}
           title={folder.isFavorite ? "Unstar folder" : "Star folder"}
         >
@@ -93,23 +93,23 @@ export const FolderCard = ({
         <div className="relative" ref={menuRef}>
           <button
             onClick={() => setMenuOpen(!menuOpen)}
-            className="p-1.5 rounded-lg text-zinc-500 hover:text-zinc-200 hover:bg-white/[0.08] transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:text-zinc-500 dark:hover:text-zinc-200 hover:bg-slate-100 dark:hover:bg-white/[0.08] transition-colors cursor-pointer"
             title="Folder actions"
           >
             <MoreVertical size={16} />
           </button>
 
           {menuOpen && (
-            <div className="absolute right-0 top-full mt-1.5 w-48 bg-[#0c101a] border border-white/10 rounded-xl shadow-2xl p-1 z-30 backdrop-blur-xl animate-in fade-in zoom-in-95 duration-150">
+            <div className="absolute right-0 top-full mt-1.5 w-48 bg-white dark:bg-[#0c101a] border border-slate-200 dark:border-white/10 rounded-xl shadow-2xl p-1 z-30 backdrop-blur-xl animate-in fade-in zoom-in-95 duration-150">
               {onDownloadZip && (
                 <button
                   onClick={() => {
                     setMenuOpen(false);
                     onDownloadZip(folder);
                   }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-zinc-300 hover:text-white hover:bg-white/[0.06] rounded-lg transition-colors cursor-pointer"
+                  className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-slate-700 dark:text-zinc-300 hover:text-slate-950 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.06] rounded-lg transition-colors cursor-pointer"
                 >
-                  <Download size={14} className="text-indigo-400" />
+                  <Download size={14} className="text-indigo-500" />
                   <span>Download as ZIP</span>
                 </button>
               )}
@@ -118,11 +118,11 @@ export const FolderCard = ({
                 <button
                   onClick={() => {
                     setMenuOpen(false);
-                    onShare(folder);
+                    onShare(folder, "folder");
                   }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-zinc-300 hover:text-white hover:bg-white/[0.06] rounded-lg transition-colors cursor-pointer"
+                  className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-slate-700 dark:text-zinc-300 hover:text-slate-950 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.06] rounded-lg transition-colors cursor-pointer"
                 >
-                  <Share2 size={14} className="text-cyan-400" />
+                  <Share2 size={14} className="text-cyan-500" />
                   <span>Share link</span>
                 </button>
               )}
@@ -133,9 +133,9 @@ export const FolderCard = ({
                     setMenuOpen(false);
                     onRename(folder);
                   }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-zinc-300 hover:text-white hover:bg-white/[0.06] rounded-lg transition-colors cursor-pointer"
+                  className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-slate-700 dark:text-zinc-300 hover:text-slate-950 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.06] rounded-lg transition-colors cursor-pointer"
                 >
-                  <Edit3 size={14} className="text-zinc-400" />
+                  <Edit3 size={14} className="text-slate-400 dark:text-zinc-400" />
                   <span>Rename</span>
                 </button>
               )}
@@ -144,23 +144,23 @@ export const FolderCard = ({
                 <button
                   onClick={() => {
                     setMenuOpen(false);
-                    onMove(folder);
+                    onMove(folder, "folder");
                   }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-zinc-300 hover:text-white hover:bg-white/[0.06] rounded-lg transition-colors cursor-pointer"
+                  className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-slate-700 dark:text-zinc-300 hover:text-slate-950 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.06] rounded-lg transition-colors cursor-pointer"
                 >
-                  <FolderSymlink size={14} className="text-amber-400" />
+                  <FolderSymlink size={14} className="text-amber-500" />
                   <span>Move to...</span>
                 </button>
               )}
 
-              <div className="h-px bg-white/[0.06] my-1" />
+              <div className="h-px bg-slate-200 dark:bg-white/[0.06] my-1" />
 
               <button
                 onClick={() => {
                   setMenuOpen(false);
                   handleDelete(folder);
                 }}
-                className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
+                className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
               >
                 <Trash2 size={14} />
                 <span>Move to Trash</span>

@@ -125,18 +125,18 @@ export const Layout = () => {
   }, [currentFolderId]);
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-[#06080d] text-slate-100 font-sans">
+    <div className="flex h-screen w-screen overflow-hidden bg-slate-50 dark:bg-[#06080d] text-slate-900 dark:text-slate-100 font-sans transition-colors duration-200">
       {/* Global Drag & Drop Overlay */}
       {isDragging && (
-        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-6 animate-in fade-in duration-200 pointer-events-none">
-          <div className="max-w-md w-full bg-[#0c101a] border-2 border-dashed border-indigo-500 rounded-3xl p-8 flex flex-col items-center text-center shadow-2xl shadow-indigo-500/20">
-            <div className="w-16 h-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400 mb-4 animate-bounce">
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-6 animate-in fade-in duration-200 pointer-events-none">
+          <div className="max-w-md w-full bg-white dark:bg-[#0c101a] border-2 border-dashed border-indigo-500 rounded-3xl p-8 flex flex-col items-center text-center shadow-2xl shadow-indigo-500/20">
+            <div className="w-16 h-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-500 dark:text-indigo-400 mb-4 animate-bounce">
               <UploadCloud size={32} />
             </div>
-            <h2 className="text-xl font-bold font-['Outfit'] text-white mb-1">
+            <h2 className="text-xl font-bold font-['Outfit'] text-slate-900 dark:text-white mb-1">
               Drop files anywhere to upload
             </h2>
-            <p className="text-xs text-zinc-400 max-w-xs">
+            <p className="text-xs text-slate-500 dark:text-zinc-400 max-w-xs">
               Files will be immediately uploaded to your current cloud directory
             </p>
           </div>
@@ -148,10 +148,10 @@ export const Layout = () => {
         <div
           className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-2xl border shadow-2xl backdrop-blur-xl text-sm font-medium animate-in slide-in-from-bottom-5 duration-200 ${
             uploadToast.type === "success"
-              ? "bg-[#0c1a14]/90 border-emerald-500/30 text-emerald-300"
+              ? "bg-emerald-50 dark:bg-[#0c1a14]/90 border-emerald-500/30 text-emerald-800 dark:text-emerald-300"
               : uploadToast.type === "error"
-              ? "bg-[#1c0c0e]/90 border-red-500/30 text-red-300"
-              : "bg-[#0c101a]/95 border-indigo-500/30 text-indigo-200"
+              ? "bg-red-50 dark:bg-[#1c0c0e]/90 border-red-500/30 text-red-800 dark:text-red-300"
+              : "bg-white dark:bg-[#0c101a]/95 border-indigo-500/30 text-indigo-800 dark:text-indigo-200"
           }`}
         >
           <div className="shrink-0">

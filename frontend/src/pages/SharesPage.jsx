@@ -127,16 +127,16 @@ export default function SharesPage() {
       )}
 
       {/* Page Header */}
-      <div className="flex items-center justify-between pb-4 border-b border-white/[0.06]">
+      <div className="flex items-center justify-between pb-4 border-b border-slate-200/80 dark:border-white/[0.06]">
         <div className="flex items-center gap-3.5">
-          <div className="w-11 h-11 rounded-2xl flex items-center justify-center bg-cyan-400/10 text-cyan-400 border border-cyan-400/20">
+          <div className="w-11 h-11 rounded-2xl flex items-center justify-center bg-cyan-400/10 text-cyan-600 dark:text-cyan-400 border border-cyan-400/20">
             <Share2 size={22} className="stroke-[2.2]" />
           </div>
           <div>
-            <h1 className="text-xl font-bold font-['Outfit'] text-white">
+            <h1 className="text-xl font-bold font-['Outfit'] text-slate-900 dark:text-white">
               Shared Links Manager
             </h1>
-            <p className="text-xs text-zinc-400">
+            <p className="text-xs text-slate-500 dark:text-zinc-400">
               Manage public and password-protected transfer links ({shares.length} created)
             </p>
           </div>
@@ -145,34 +145,34 @@ export default function SharesPage() {
         <button
           onClick={loadShares}
           title="Refresh links"
-          className="p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-zinc-400 hover:text-white border border-white/[0.08] transition-colors cursor-pointer"
+          className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 dark:bg-white/[0.04] dark:hover:bg-white/[0.08] text-slate-600 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white border border-slate-200/80 dark:border-white/[0.08] transition-colors cursor-pointer"
         >
-          <RefreshCw size={15} className={loading ? "animate-spin text-indigo-400" : ""} />
+          <RefreshCw size={15} className={loading ? "animate-spin text-indigo-500" : ""} />
         </button>
       </div>
 
       {loading ? (
-        <div className="flex flex-col items-center justify-center py-20 gap-3 text-zinc-500">
+        <div className="flex flex-col items-center justify-center py-20 gap-3 text-slate-400 dark:text-zinc-500">
           <div className="w-8 h-8 rounded-full border-2 border-indigo-500 border-t-transparent animate-spin" />
           <p className="text-xs font-medium">Loading share links...</p>
         </div>
       ) : shares.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="w-16 h-16 rounded-2xl bg-cyan-400/10 border border-cyan-400/20 flex items-center justify-center text-cyan-400 mb-4">
+          <div className="w-16 h-16 rounded-2xl bg-cyan-400/10 border border-cyan-400/20 flex items-center justify-center text-cyan-600 dark:text-cyan-400 mb-4">
             <Share2 size={32} className="stroke-[1.6]" />
           </div>
-          <h3 className="text-lg font-bold font-['Outfit'] text-white mb-1">
+          <h3 className="text-lg font-bold font-['Outfit'] text-slate-900 dark:text-white mb-1">
             No shared links active
           </h3>
-          <p className="text-xs text-zinc-400 max-w-sm mb-6">
+          <p className="text-xs text-slate-500 dark:text-zinc-400 max-w-sm mb-6">
             Generate shareable links from any file or folder card to send files securely with password protection or expiration timers.
           </p>
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-2xl bg-[#0c0f17]/90 border border-white/[0.07] shadow-xl">
+        <div className="overflow-x-auto rounded-2xl bg-white dark:bg-[#0c0f17]/90 border border-slate-200/80 dark:border-white/[0.07] shadow-xs">
           <table className="w-full text-left text-xs">
             <thead>
-              <tr className="border-b border-white/[0.06] text-zinc-500 uppercase tracking-wider text-[10px]">
+              <tr className="border-b border-slate-200 dark:border-white/[0.06] text-slate-400 dark:text-zinc-500 uppercase tracking-wider text-[10px]">
                 <th className="py-3.5 px-4">Shared Item</th>
                 <th className="py-3.5 px-4">Security</th>
                 <th className="py-3.5 px-4">Permission</th>
@@ -182,28 +182,28 @@ export default function SharesPage() {
                 <th className="py-3.5 px-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/[0.04]">
+            <tbody className="divide-y divide-slate-100 dark:divide-white/[0.04]">
               {shares.map((share) => {
                 const expired = isExpired(share.expiresAt);
                 const itemName = share.item?.name || "Shared Item";
                 const isFolder = share.itemType === "folder";
 
                 return (
-                  <tr key={share._id} className="hover:bg-white/[0.02] transition-colors">
+                  <tr key={share._id} className="hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors">
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-3">
                         <div
                           className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                            isFolder ? "bg-indigo-500/10 text-indigo-400" : "bg-sky-500/10 text-sky-400"
+                            isFolder ? "bg-indigo-500/10 text-indigo-500 dark:text-indigo-400" : "bg-sky-500/10 text-sky-500 dark:text-sky-400"
                           }`}
                         >
                           {isFolder ? <Folder size={16} /> : <FileText size={16} />}
                         </div>
                         <div className="flex flex-col min-w-0">
-                          <span className="font-semibold text-zinc-100 truncate max-w-[200px]">
+                          <span className="font-semibold text-slate-800 dark:text-zinc-100 truncate max-w-[200px]">
                             {itemName}
                           </span>
-                          <span className="text-[10px] text-zinc-500 font-mono">
+                          <span className="text-[10px] text-slate-400 dark:text-zinc-500 font-mono">
                             /share/{share.token.slice(0, 10)}...
                           </span>
                         </div>

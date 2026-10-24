@@ -170,16 +170,16 @@ export default function TrashPage() {
       )}
 
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/[0.06]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-white/[0.06]">
         <div className="flex items-center gap-3.5">
-          <div className="w-11 h-11 rounded-2xl flex items-center justify-center bg-red-500/10 text-red-400 border border-red-500/20">
+          <div className="w-11 h-11 rounded-2xl flex items-center justify-center bg-red-500/10 text-red-500 dark:text-red-400 border border-red-500/20">
             <Trash2 size={22} className="stroke-[2.2]" />
           </div>
           <div>
-            <h1 className="text-xl font-bold font-['Outfit'] text-white">
+            <h1 className="text-xl font-bold font-['Outfit'] text-slate-900 dark:text-white">
               Trash & Retention
             </h1>
-            <p className="text-xs text-zinc-400">
+            <p className="text-xs text-slate-500 dark:text-zinc-400">
               Items in Trash are scheduled for permanent purge after 30 days ({totalCount} items)
             </p>
           </div>
@@ -189,7 +189,7 @@ export default function TrashPage() {
           <button
             onClick={loadTrash}
             title="Refresh Trash"
-            className="p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-zinc-400 hover:text-white border border-white/[0.08] transition-colors cursor-pointer"
+            className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/[0.04] dark:hover:bg-white/[0.08] text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-white/[0.08] transition-colors cursor-pointer"
           >
             <RefreshCw size={15} className={loading ? "animate-spin text-indigo-400" : ""} />
           </button>
@@ -197,7 +197,7 @@ export default function TrashPage() {
             <button
               onClick={handleEmptyTrash}
               disabled={loading}
-              className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-red-500/15 hover:bg-red-500/25 text-red-400 border border-red-500/25 text-xs font-medium transition-all cursor-pointer"
+              className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-red-500/15 hover:bg-red-500/25 text-red-600 dark:text-red-400 border border-red-500/25 text-xs font-semibold transition-all cursor-pointer"
             >
               <Trash2 size={14} />
               <span>Empty Trash</span>
@@ -207,46 +207,46 @@ export default function TrashPage() {
       </div>
 
       {/* Retention Policy Banner */}
-      <div className="p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-xs text-indigo-200 flex items-start gap-3">
-        <Info size={18} className="text-indigo-400 shrink-0 mt-0.5" />
+      <div className="p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-xs text-indigo-900 dark:text-indigo-200 flex items-start gap-3">
+        <Info size={18} className="text-indigo-600 dark:text-indigo-400 shrink-0 mt-0.5" />
         <p>
-          <strong className="text-white">Automatic Retention Policy:</strong> Trashed items remain safely recoverable for 30 days. You can restore them back to their original locations or purge them immediately to free up cloud storage quota.
+          <strong className="text-indigo-950 dark:text-white">Automatic Retention Policy:</strong> Trashed items remain safely recoverable for 30 days. You can restore them back to their original locations or purge them immediately to free up cloud storage quota.
         </p>
       </div>
 
       {loading ? (
-        <div className="flex flex-col items-center justify-center py-20 gap-3 text-zinc-500">
+        <div className="flex flex-col items-center justify-center py-20 gap-3 text-slate-400 dark:text-zinc-500">
           <div className="w-8 h-8 rounded-full border-2 border-indigo-500 border-t-transparent animate-spin" />
           <p className="text-xs font-medium">Checking trash contents...</p>
         </div>
       ) : totalCount === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="w-16 h-16 rounded-2xl bg-zinc-800/50 border border-white/5 flex items-center justify-center text-zinc-500 mb-4">
+          <div className="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-zinc-800/50 border border-slate-200 dark:border-white/5 flex items-center justify-center text-slate-400 dark:text-zinc-500 mb-4">
             <Trash2 size={32} className="stroke-[1.6]" />
           </div>
-          <h3 className="text-lg font-bold font-['Outfit'] text-white mb-1">
+          <h3 className="text-lg font-bold font-['Outfit'] text-slate-900 dark:text-white mb-1">
             Trash is empty
           </h3>
-          <p className="text-xs text-zinc-400 max-w-sm">
+          <p className="text-xs text-slate-500 dark:text-zinc-400 max-w-sm">
             Items you delete from your drive will appear here before being permanently destroyed.
           </p>
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-2xl bg-[#0c0f17]/90 border border-white/[0.07] shadow-xl">
+        <div className="overflow-x-auto rounded-2xl bg-white dark:bg-[#0c0f17]/90 border border-slate-200 dark:border-white/[0.07] shadow-xl">
           <table className="w-full text-left text-xs">
             <thead>
-              <tr className="border-b border-white/[0.06] text-zinc-500 uppercase tracking-wider text-[10px]">
-                <th className="py-3.5 px-4">Item Name</th>
-                <th className="py-3.5 px-4">Type</th>
-                <th className="py-3.5 px-4">Size</th>
-                <th className="py-3.5 px-4">Trashed Date</th>
-                <th className="py-3.5 px-4 text-right">Actions</th>
+              <tr className="border-b border-slate-200 dark:border-white/[0.06] text-slate-500 dark:text-zinc-500 uppercase tracking-wider text-[10px] bg-slate-50/50 dark:bg-transparent">
+                <th className="py-3.5 px-4 font-semibold">Item Name</th>
+                <th className="py-3.5 px-4 font-semibold">Type</th>
+                <th className="py-3.5 px-4 font-semibold">Size</th>
+                <th className="py-3.5 px-4 font-semibold">Trashed Date</th>
+                <th className="py-3.5 px-4 text-right font-semibold">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/[0.04]">
+            <tbody className="divide-y divide-slate-100 dark:divide-white/[0.04]">
               {/* Folders */}
               {folders.map((folder) => (
-                <tr key={folder._id} className="hover:bg-white/[0.02] transition-colors">
+                <tr key={folder._id} className="hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors">
                   <td className="py-3 px-4">
                     <div className="flex items-center gap-3">
                       <div
@@ -258,16 +258,16 @@ export default function TrashPage() {
                       >
                         <Folder size={16} />
                       </div>
-                      <span className="font-semibold text-zinc-100">{folder.name}</span>
+                      <span className="font-semibold text-slate-900 dark:text-zinc-100">{folder.name}</span>
                     </div>
                   </td>
                   <td className="py-3 px-4">
-                    <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                    <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
                       Folder
                     </span>
                   </td>
-                  <td className="py-3 px-4 text-zinc-500">--</td>
-                  <td className="py-3 px-4 text-zinc-400">
+                  <td className="py-3 px-4 text-slate-400 dark:text-zinc-500">--</td>
+                  <td className="py-3 px-4 text-slate-500 dark:text-zinc-400">
                     {formatDate(folder.trashedAt || folder.updatedAt)}
                   </td>
                   <td className="py-3 px-4 text-right">
@@ -275,7 +275,7 @@ export default function TrashPage() {
                       <button
                         onClick={() => handleRestoreFolder(folder)}
                         disabled={processingId === folder._id}
-                        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 text-xs font-medium transition-all cursor-pointer"
+                        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-xs font-semibold transition-all cursor-pointer"
                         title="Restore"
                       >
                         <RotateCcw size={13} />
@@ -284,7 +284,7 @@ export default function TrashPage() {
                       <button
                         onClick={() => handleDeleteFolderPermanently(folder)}
                         disabled={processingId === folder._id}
-                        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 text-xs font-medium transition-all cursor-pointer"
+                        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/20 text-xs font-semibold transition-all cursor-pointer"
                         title="Delete Forever"
                       >
                         <Trash2 size={13} />
@@ -297,24 +297,24 @@ export default function TrashPage() {
 
               {/* Files */}
               {files.map((file) => (
-                <tr key={file._id} className="hover:bg-white/[0.02] transition-colors">
+                <tr key={file._id} className="hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors">
                   <td className="py-3 px-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-zinc-800/80 text-zinc-300">
+                      <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-slate-100 dark:bg-zinc-800/80 text-slate-600 dark:text-zinc-300">
                         <FileText size={16} />
                       </div>
-                      <span className="font-semibold text-zinc-100">{file.name}</span>
+                      <span className="font-semibold text-slate-900 dark:text-zinc-100">{file.name}</span>
                     </div>
                   </td>
                   <td className="py-3 px-4">
-                    <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-zinc-500/10 text-zinc-400 border border-zinc-500/20">
+                    <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-slate-100 dark:bg-zinc-500/10 text-slate-600 dark:text-zinc-400 border border-slate-200 dark:border-zinc-500/20">
                       {file.category || "File"}
                     </span>
                   </td>
-                  <td className="py-3 px-4 font-mono text-zinc-400">
+                  <td className="py-3 px-4 font-mono text-slate-600 dark:text-zinc-400">
                     {formatFileSize(file.size)}
                   </td>
-                  <td className="py-3 px-4 text-zinc-400">
+                  <td className="py-3 px-4 text-slate-500 dark:text-zinc-400">
                     {formatDate(file.trashedAt || file.updatedAt)}
                   </td>
                   <td className="py-3 px-4 text-right">
@@ -322,7 +322,7 @@ export default function TrashPage() {
                       <button
                         onClick={() => handleRestoreFile(file)}
                         disabled={processingId === file._id}
-                        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 text-xs font-medium transition-all cursor-pointer"
+                        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-xs font-semibold transition-all cursor-pointer"
                         title="Restore"
                       >
                         <RotateCcw size={13} />
@@ -331,7 +331,7 @@ export default function TrashPage() {
                       <button
                         onClick={() => handleDeleteFilePermanently(file)}
                         disabled={processingId === file._id}
-                        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 text-xs font-medium transition-all cursor-pointer"
+                        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/20 text-xs font-semibold transition-all cursor-pointer"
                         title="Delete Forever"
                       >
                         <Trash2 size={13} />

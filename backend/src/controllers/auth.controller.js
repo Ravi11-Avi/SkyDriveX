@@ -47,17 +47,28 @@ const sendTokenResponse = (user, statusCode, res) => {
 const register = async (req, res, next) => {
   try {
     const { name, email, password } = req.body;
+    const normalizedEmail = email.toLowerCase().trim();
 
     // 1. Check if user already exists
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ email: normalizedEmail }).select("+password");
     if (existingUser) {
-      return next(new AppError("User with this email already exists", 400));
+      // If user registered via OAuth and doesn't have a local password yet: link the password!
+      if (!existingUser.password) {
+        existingUser.password = password;
+        if (name && (!existingUser.name || existingUser.name === "Google User" || existingUser.name === "GitHub User")) {
+          existingUser.name = name.trim();
+        }
+        existingUser.isVerified = true;
+        await existingUser.save();
+        return sendTokenResponse(existingUser, 200, res);
+      }
+      return next(new AppError("An account with this email already exists. Please log in with your password or use Google/GitHub.", 400));
     }
 
     // 2. Create local user
     const user = await User.create({
-      name,
-      email,
+      name: name.trim(),
+      email: normalizedEmail,
       password,
       authProvider: "local",
     });
@@ -75,18 +86,19 @@ const register = async (req, res, next) => {
 const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
+    const normalizedEmail = email.toLowerCase().trim();
 
     // 1. Check if user exists and select password field
-    const user = await User.findOne({ email }).select("+password");
+    const user = await User.findOne({ email: normalizedEmail }).select("+password");
     if (!user) {
       return next(new AppError("Invalid email or password", 401));
     }
 
     // 2. If user registered via OAuth and hasn't set a local password
-    if (user.authProvider !== "local" && !user.password) {
+    if (!user.password) {
       return next(
         new AppError(
-          `This account was created using ${user.authProvider} login. Please log in using that provider.`,
+          `This account was created using ${user.authProvider || "Google/GitHub"} login. Please log in using that provider or register with this email to set a password.`,
           400
         )
       );

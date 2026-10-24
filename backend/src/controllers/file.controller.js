@@ -80,8 +80,24 @@ const uploadFiles = async (req, res, next) => {
     }
 
     const uploadedFiles = [];
+    const skippedFiles = [];
+    const skipDuplicates = req.body.skipDuplicates === "true" || req.body.skipDuplicates === true;
 
     for (const file of rawFiles) {
+      // Optional duplicate skip check
+      if (skipDuplicates) {
+        const existing = await File.findOne({
+          user: userId,
+          folder: targetFolderId,
+          name: file.originalname,
+          isTrash: false,
+        });
+        if (existing) {
+          skippedFiles.push(file.originalname);
+          continue;
+        }
+      }
+
       const ext = path.extname(file.originalname).replace(".", "").toLowerCase();
       const sanitizedName = file.originalname.replace(/[^a-zA-Z0-9._-]/g, "_");
       const s3Key = `users/${userId}/${Date.now()}-${uuidv4()}-${sanitizedName}`;
@@ -124,10 +140,15 @@ const uploadFiles = async (req, res, next) => {
       });
     }
 
+    const message = skippedFiles.length > 0
+      ? `${uploadedFiles.length} file(s) uploaded successfully (${skippedFiles.length} duplicate(s) skipped)`
+      : `${uploadedFiles.length} file(s) uploaded successfully`;
+
     res.status(201).json({
       success: true,
-      message: `${uploadedFiles.length} file(s) uploaded successfully`,
+      message,
       files: uploadedFiles,
+      skippedFiles,
     });
   } catch (error) {
     next(error);

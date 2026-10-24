@@ -71,7 +71,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen w-screen flex items-center justify-center p-4 bg-[#06080d] text-slate-100 relative overflow-hidden font-sans">
+    <div className="min-h-screen w-screen flex items-center justify-center p-4 bg-slate-50 dark:bg-[#06080d] text-slate-900 dark:text-slate-100 relative overflow-hidden font-sans transition-colors duration-200">
       {/* Background Ambient Radial Glow */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-gradient-to-b from-indigo-500/15 via-violet-500/5 to-transparent rounded-full blur-3xl pointer-events-none" />
 
@@ -81,23 +81,23 @@ export default function LoginPage() {
           <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-500 via-indigo-600 to-violet-600 flex items-center justify-center text-white shadow-xl shadow-indigo-500/30 mb-1">
             <Cloud size={28} className="stroke-[2.2]" />
           </div>
-          <h1 className="text-2xl font-bold font-['Outfit'] tracking-tight text-white flex items-center gap-1">
-            SkyDrive<span className="text-indigo-400">X</span>
+          <h1 className="text-2xl font-bold font-['Outfit'] tracking-tight text-slate-900 dark:text-white flex items-center gap-1">
+            SkyDrive<span className="text-indigo-600 dark:text-indigo-400">X</span>
           </h1>
-          <p className="text-xs text-zinc-400 max-w-xs">
+          <p className="text-xs text-slate-500 dark:text-zinc-400 max-w-xs">
             Next-generation zero-knowledge encrypted cloud storage
           </p>
         </div>
 
         {/* Card */}
-        <div className="p-8 rounded-3xl bg-[#0c0f17]/90 border border-white/[0.08] shadow-2xl backdrop-blur-2xl flex flex-col gap-5">
+        <div className="p-8 rounded-3xl bg-white dark:bg-[#0c0f17]/90 border border-slate-200 dark:border-white/[0.08] shadow-2xl backdrop-blur-2xl flex flex-col gap-5">
           <div className="flex flex-col gap-1">
-            <h2 className="text-lg font-bold font-['Outfit'] text-white">Welcome Back</h2>
-            <p className="text-xs text-zinc-400">Sign in to access your cloud files and workspaces</p>
+            <h2 className="text-lg font-bold font-['Outfit'] text-slate-900 dark:text-white">Welcome Back</h2>
+            <p className="text-xs text-slate-500 dark:text-zinc-400">Sign in to access your cloud files and workspaces</p>
           </div>
 
           {error && (
-            <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-xs flex items-center gap-2">
+            <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-300 text-xs flex items-center gap-2">
               <AlertCircle size={15} className="shrink-0" />
               <span>{error}</span>
             </div>
@@ -105,48 +105,48 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4 text-xs">
             <div className="flex flex-col gap-1.5">
-              <label className="font-semibold text-zinc-300">Email Address</label>
+              <label className="font-semibold text-slate-700 dark:text-zinc-300">Email Address</label>
               <div className="relative">
-                <Mail size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500" />
+                <Mail size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-zinc-500" />
                 <input
                   type="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="alex@example.com"
-                  className="w-full bg-[#0d101a] border border-white/[0.08] focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-zinc-100 placeholder-zinc-500 pl-9 pr-3 py-2.5 rounded-xl outline-none"
+                  className="w-full bg-slate-50 dark:bg-[#0d101a] border border-slate-200 dark:border-white/[0.08] focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-slate-900 dark:text-zinc-100 placeholder-slate-400 dark:placeholder-zinc-500 pl-9 pr-3 py-2.5 rounded-xl outline-none"
                 />
               </div>
             </div>
 
             <div className="flex flex-col gap-1.5">
               <div className="flex items-center justify-between">
-                <label className="font-semibold text-zinc-300">Password</label>
+                <label className="font-semibold text-slate-700 dark:text-zinc-300">Password</label>
                 <button
                   type="button"
                   onClick={() => {
                     setForgotEmail(email);
                     setShowForgotModal(true);
                   }}
-                  className="text-[11px] text-indigo-400 hover:text-indigo-300 transition-colors cursor-pointer"
+                  className="text-[11px] text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 transition-colors cursor-pointer"
                 >
                   Forgot password?
                 </button>
               </div>
               <div className="relative">
-                <Lock size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500" />
+                <Lock size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-zinc-500" />
                 <input
                   type={showPassword ? "text" : "password"}
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full bg-[#0d101a] border border-white/[0.08] focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-zinc-100 placeholder-zinc-500 pl-9 pr-9 py-2.5 rounded-xl outline-none"
+                  className="w-full bg-slate-50 dark:bg-[#0d101a] border border-slate-200 dark:border-white/[0.08] focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-slate-900 dark:text-zinc-100 placeholder-slate-400 dark:placeholder-zinc-500 pl-9 pr-9 py-2.5 rounded-xl outline-none"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 cursor-pointer"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-zinc-500 hover:text-slate-600 dark:hover:text-zinc-300 cursor-pointer"
                 >
                   {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                 </button>
@@ -174,18 +174,18 @@ export default function LoginPage() {
 
           {/* Separator */}
           <div className="flex items-center my-1">
-            <div className="flex-1 border-t border-white/[0.06]" />
-            <span className="px-3 text-[11px] text-zinc-500 uppercase font-semibold tracking-wider">
+            <div className="flex-1 border-t border-slate-200 dark:border-white/[0.06]" />
+            <span className="px-3 text-[11px] text-slate-400 dark:text-zinc-500 uppercase font-semibold tracking-wider">
               or continue with
             </span>
-            <div className="flex-1 border-t border-white/[0.06]" />
+            <div className="flex-1 border-t border-slate-200 dark:border-white/[0.06]" />
           </div>
 
           {/* Social OAuth Buttons */}
           <div className="grid grid-cols-2 gap-3">
             <a
               href="/api/v1/auth/google"
-              className="flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-xs font-medium text-zinc-200 transition-colors"
+              className="flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/[0.04] dark:hover:bg-white/[0.08] border border-slate-200 dark:border-white/[0.08] text-xs font-semibold text-slate-700 dark:text-zinc-200 transition-colors"
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24">
                 <path
@@ -210,7 +210,7 @@ export default function LoginPage() {
 
             <a
               href="/api/v1/auth/github"
-              className="flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-xs font-medium text-zinc-200 transition-colors"
+              className="flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/[0.04] dark:hover:bg-white/[0.08] border border-slate-200 dark:border-white/[0.08] text-xs font-semibold text-slate-700 dark:text-zinc-200 transition-colors"
             >
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                 <path
@@ -223,17 +223,17 @@ export default function LoginPage() {
             </a>
           </div>
 
-          <div className="text-center text-xs text-zinc-400 mt-1">
+          <div className="text-center text-xs text-slate-500 dark:text-zinc-400 mt-1">
             <span>Don't have an account? </span>
-            <Link to="/register" className="text-indigo-400 font-semibold hover:underline">
+            <Link to="/register" className="text-indigo-600 dark:text-indigo-400 font-semibold hover:underline">
               Create an account
             </Link>
           </div>
         </div>
 
         {/* Security Tag */}
-        <div className="flex items-center justify-center gap-1.5 text-xs text-zinc-500">
-          <ShieldCheck size={14} className="text-emerald-400" />
+        <div className="flex items-center justify-center gap-1.5 text-xs text-slate-400 dark:text-zinc-500">
+          <ShieldCheck size={14} className="text-emerald-500" />
           <span>AES-256 Cloud Storage Encryption Standard</span>
         </div>
       </div>

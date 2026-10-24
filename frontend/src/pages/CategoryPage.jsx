@@ -104,16 +104,16 @@ export const CategoryPage = () => {
   return (
     <div className="flex flex-col gap-6 max-w-7xl mx-auto">
       {/* Category Header */}
-      <div className="flex items-center justify-between pb-4 border-b border-white/[0.06]">
+      <div className="flex items-center justify-between pb-4 border-b border-slate-200/80 dark:border-white/[0.06]">
         <div className="flex items-center gap-3.5">
-          <div className={`w-11 h-11 rounded-2xl flex items-center justify-center ${meta.bg} ${meta.color} border border-white/5`}>
+          <div className={`w-11 h-11 rounded-2xl flex items-center justify-center ${meta.bg} ${meta.color} border border-slate-200 dark:border-white/5`}>
             <IconComponent size={22} className="stroke-[2.2]" />
           </div>
           <div>
-            <h1 className="text-xl font-bold font-['Outfit'] text-white">
+            <h1 className="text-xl font-bold font-['Outfit'] text-slate-900 dark:text-white">
               {meta.label}
             </h1>
-            <p className="text-xs text-zinc-400">
+            <p className="text-xs text-slate-500 dark:text-zinc-400">
               {files.length} {files.length === 1 ? "file" : "files"} in this category
             </p>
           </div>
@@ -121,7 +121,7 @@ export const CategoryPage = () => {
 
         <button
           onClick={openUpload}
-          className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-400 hover:to-violet-500 text-white text-xs font-medium shadow-md shadow-indigo-500/20 transition-all cursor-pointer"
+          className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-400 hover:to-violet-500 text-white text-xs font-semibold shadow-md shadow-indigo-500/20 transition-all cursor-pointer"
         >
           <UploadCloud size={14} />
           <span>Upload</span>
@@ -130,23 +130,23 @@ export const CategoryPage = () => {
 
       {/* Files Display */}
       {loading ? (
-        <div className="flex flex-col items-center justify-center py-20 gap-3 text-zinc-500">
+        <div className="flex flex-col items-center justify-center py-20 gap-3 text-slate-400 dark:text-zinc-500">
           <div className="w-8 h-8 rounded-full border-2 border-indigo-500 border-t-transparent animate-spin" />
           <p className="text-xs font-medium">Filtering files...</p>
         </div>
       ) : error ? (
-        <div className="p-6 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-300 text-sm">
+        <div className="p-6 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-300 text-sm">
           {error}
         </div>
       ) : filteredFiles.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="w-16 h-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 mb-4">
+          <div className="w-16 h-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-500 dark:text-indigo-400 mb-4">
             <Inbox size={32} className="stroke-[1.6]" />
           </div>
-          <h3 className="text-lg font-bold font-['Outfit'] text-white mb-1">
+          <h3 className="text-lg font-bold font-['Outfit'] text-slate-900 dark:text-white mb-1">
             No {meta.label.toLowerCase()} found
           </h3>
-          <p className="text-xs text-zinc-400 max-w-sm mb-6">
+          <p className="text-xs text-slate-500 dark:text-zinc-400 max-w-sm mb-6">
             Upload files of this type and they will be automatically organized here.
           </p>
           <button

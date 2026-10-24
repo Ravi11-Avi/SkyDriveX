@@ -125,16 +125,16 @@ export default function FavoritesPage() {
       )}
 
       {/* Page Header */}
-      <div className="flex items-center justify-between pb-4 border-b border-white/[0.06]">
+      <div className="flex items-center justify-between pb-4 border-b border-slate-200/80 dark:border-white/[0.06]">
         <div className="flex items-center gap-3.5">
-          <div className="w-11 h-11 rounded-2xl flex items-center justify-center bg-amber-400/10 text-amber-400 border border-amber-400/20">
+          <div className="w-11 h-11 rounded-2xl flex items-center justify-center bg-amber-400/10 text-amber-500 dark:text-amber-400 border border-amber-400/20">
             <Star size={22} className="stroke-[2.2] fill-amber-400/20" />
           </div>
           <div>
-            <h1 className="text-xl font-bold font-['Outfit'] text-white">
+            <h1 className="text-xl font-bold font-['Outfit'] text-slate-900 dark:text-white">
               Starred Items
             </h1>
-            <p className="text-xs text-zinc-400">
+            <p className="text-xs text-slate-500 dark:text-zinc-400">
               Quick access to your {totalCount} favorite {totalCount === 1 ? "item" : "items"}
             </p>
           </div>
@@ -143,33 +143,33 @@ export default function FavoritesPage() {
         <button
           onClick={loadFavorites}
           title="Refresh"
-          className="p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-zinc-400 hover:text-white border border-white/[0.08] transition-colors cursor-pointer"
+          className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 dark:bg-white/[0.04] dark:hover:bg-white/[0.08] text-slate-600 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white border border-slate-200/80 dark:border-white/[0.08] transition-colors cursor-pointer"
         >
-          <RefreshCw size={15} className={loading ? "animate-spin text-indigo-400" : ""} />
+          <RefreshCw size={15} className={loading ? "animate-spin text-indigo-500" : ""} />
         </button>
       </div>
 
       {loading ? (
-        <div className="flex flex-col items-center justify-center py-20 gap-3 text-zinc-500">
+        <div className="flex flex-col items-center justify-center py-20 gap-3 text-slate-400 dark:text-zinc-500">
           <div className="w-8 h-8 rounded-full border-2 border-indigo-500 border-t-transparent animate-spin" />
           <p className="text-xs font-medium">Loading favorites...</p>
         </div>
       ) : totalCount === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="w-16 h-16 rounded-2xl bg-amber-400/10 border border-amber-400/20 flex items-center justify-center text-amber-400 mb-4">
+          <div className="w-16 h-16 rounded-2xl bg-amber-400/10 border border-amber-400/20 flex items-center justify-center text-amber-500 dark:text-amber-400 mb-4">
             <Star size={32} className="stroke-[1.6]" />
           </div>
-          <h3 className="text-lg font-bold font-['Outfit'] text-white mb-1">
+          <h3 className="text-lg font-bold font-['Outfit'] text-slate-900 dark:text-white mb-1">
             No favorite items yet
           </h3>
-          <p className="text-xs text-zinc-400 max-w-sm mb-6">
+          <p className="text-xs text-slate-500 dark:text-zinc-400 max-w-sm mb-6">
             Click the star icon on any folder or file across your drive to bookmark it here for quick access.
           </p>
           <button
             onClick={() => navigate("/")}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium shadow-lg shadow-indigo-500/25 transition-all cursor-pointer"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-lg shadow-indigo-500/25 transition-all cursor-pointer"
           >
-            Browse My Drive
+            <span>Browse My Drive</span>
           </button>
         </div>
       ) : (

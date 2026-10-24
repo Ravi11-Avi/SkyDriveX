@@ -10,7 +10,7 @@ const multerInstance = multer({
   storage,
   limits: {
     fileSize: MAX_FILE_SIZE,
-    files: 10, // Max 10 files per batch upload
+    files: 50, // Max 50 files per batch upload
   },
 });
 
@@ -40,7 +40,7 @@ const uploadSingle = (req, res, next) => {
  * Field name: 'files'
  */
 const uploadMultiple = (req, res, next) => {
-  const upload = multerInstance.array("files", 10);
+  const upload = multerInstance.array("files", 50);
   upload(req, res, (err) => {
     if (err instanceof multer.MulterError) {
       if (err.code === "LIMIT_FILE_SIZE") {
@@ -49,7 +49,7 @@ const uploadMultiple = (req, res, next) => {
         );
       }
       if (err.code === "LIMIT_FILE_COUNT") {
-        return next(new AppError("Too many files. Maximum 10 files can be uploaded at once.", 400));
+        return next(new AppError("Too many files. Maximum 50 files can be uploaded at once.", 400));
       }
       return next(new AppError(`Upload error: ${err.message}`, 400));
     } else if (err) {

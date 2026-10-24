@@ -127,15 +127,15 @@ export const DashboardPage = () => {
   return (
     <div className="flex flex-col gap-6 max-w-7xl mx-auto">
       {/* Breadcrumb Navigation & Action Toolbar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/[0.06]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200/80 dark:border-white/[0.06]">
         {/* Breadcrumb Trail */}
         <div className="flex items-center gap-1.5 overflow-x-auto py-1 scrollbar-none text-sm">
           <button
             onClick={() => navigate("/")}
-            className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg font-medium transition-colors cursor-pointer ${
+            className={`flex items-center gap-2 px-2.5 py-1.5 rounded-xl font-medium transition-colors cursor-pointer ${
               !folderId
-                ? "bg-indigo-500/10 text-indigo-400 border border-indigo-500/20"
-                : "text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.04]"
+                ? "bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/20"
+                : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200 hover:bg-slate-100 dark:hover:bg-white/[0.04]"
             }`}
           >
             <HardDrive size={15} />
@@ -146,13 +146,13 @@ export const DashboardPage = () => {
             const isLast = idx === breadcrumbs.length - 1;
             return (
               <React.Fragment key={crumb._id}>
-                <ChevronRight size={13} className="text-zinc-600 shrink-0" />
+                <ChevronRight size={13} className="text-slate-400 dark:text-zinc-600 shrink-0" />
                 <button
                   onClick={() => !isLast && navigate(`/folder/${crumb._id}`)}
-                  className={`px-2.5 py-1.5 rounded-lg font-medium truncate max-w-[160px] transition-colors cursor-pointer ${
+                  className={`px-2.5 py-1.5 rounded-xl font-medium truncate max-w-[160px] transition-colors cursor-pointer ${
                     isLast
-                      ? "bg-indigo-500/10 text-indigo-400 border border-indigo-500/20"
-                      : "text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.04]"
+                      ? "bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/20"
+                      : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200 hover:bg-slate-100 dark:hover:bg-white/[0.04]"
                   }`}
                   title={crumb.name}
                 >
@@ -170,17 +170,17 @@ export const DashboardPage = () => {
               href={folderApi.getZipDownloadUrl(folderId)}
               target="_blank"
               rel="noreferrer"
-              className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-zinc-300 hover:text-white border border-white/[0.08] text-xs font-medium transition-all"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200/80 dark:bg-white/[0.04] dark:hover:bg-white/[0.08] text-slate-700 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white border border-slate-200/80 dark:border-white/[0.08] text-xs font-semibold transition-all"
               title="Download entire directory as ZIP"
             >
-              <Download size={14} className="text-indigo-400" />
+              <Download size={14} className="text-indigo-600 dark:text-indigo-400" />
               <span>Download ZIP</span>
             </a>
           )}
 
           <button
             onClick={openCreateFolder}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-zinc-300 hover:text-white border border-white/[0.08] text-xs font-medium transition-all cursor-pointer"
+            className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200/80 dark:bg-white/[0.04] dark:hover:bg-white/[0.08] text-slate-700 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white border border-slate-200/80 dark:border-white/[0.08] text-xs font-semibold transition-all cursor-pointer"
           >
             <FolderPlus size={14} />
             <span>New Folder</span>
@@ -188,7 +188,7 @@ export const DashboardPage = () => {
 
           <button
             onClick={openUpload}
-            className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-400 hover:to-violet-500 text-white text-xs font-medium shadow-md shadow-indigo-500/20 transition-all cursor-pointer"
+            className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-400 hover:to-violet-500 text-white text-xs font-semibold shadow-md shadow-indigo-500/20 transition-all cursor-pointer"
           >
             <UploadCloud size={14} />
             <span>Upload</span>
@@ -208,13 +208,13 @@ export const DashboardPage = () => {
         </div>
       ) : isFolderEmpty ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="w-16 h-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 mb-4">
+          <div className="w-16 h-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-500 dark:text-indigo-400 mb-4">
             <Inbox size={32} className="stroke-[1.6]" />
           </div>
-          <h3 className="text-lg font-bold font-['Outfit'] text-white mb-1">
+          <h3 className="text-lg font-bold font-['Outfit'] text-slate-900 dark:text-white mb-1">
             {searchQuery ? "No matching items found" : "This folder is empty"}
           </h3>
-          <p className="text-xs text-zinc-400 max-w-sm mb-6">
+          <p className="text-xs text-slate-500 dark:text-zinc-400 max-w-sm mb-6">
             {searchQuery
               ? `No files or folders matched "${searchQuery}". Try a different keyword.`
               : "Drag and drop any files here or click Upload to start adding content to your cloud drive."}
@@ -222,14 +222,14 @@ export const DashboardPage = () => {
           <div className="flex items-center gap-3">
             <button
               onClick={openUpload}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium shadow-lg shadow-indigo-500/25 transition-all cursor-pointer"
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-lg shadow-indigo-500/25 transition-all cursor-pointer"
             >
               <UploadCloud size={15} />
               <span>Upload Files</span>
             </button>
             <button
               onClick={openCreateFolder}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-zinc-300 border border-white/[0.08] text-xs font-medium transition-all cursor-pointer"
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 dark:bg-white/[0.04] dark:hover:bg-white/[0.08] text-slate-700 dark:text-zinc-300 border border-slate-200/80 dark:border-white/[0.08] text-xs font-semibold transition-all cursor-pointer"
             >
               <FolderPlus size={15} />
               <span>New Folder</span>
@@ -242,7 +242,7 @@ export const DashboardPage = () => {
           {filteredFolders.length > 0 && (
             <section className="flex flex-col gap-3">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+                <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-zinc-400">
                   Folders ({filteredFolders.length})
                 </span>
               </div>
@@ -270,7 +270,7 @@ export const DashboardPage = () => {
           {filteredFiles.length > 0 && (
             <section className="flex flex-col gap-3">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+                <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-zinc-400">
                   Files ({filteredFiles.length})
                 </span>
               </div>

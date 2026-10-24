@@ -125,16 +125,16 @@ export default function StoragePage() {
       )}
 
       {/* Page Header */}
-      <div className="flex items-center justify-between pb-4 border-b border-white/[0.06]">
+      <div className="flex items-center justify-between pb-4 border-b border-slate-200/80 dark:border-white/[0.06]">
         <div className="flex items-center gap-3.5">
-          <div className="w-11 h-11 rounded-2xl flex items-center justify-center bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+          <div className="w-11 h-11 rounded-2xl flex items-center justify-center bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
             <HardDrive size={22} className="stroke-[2.2]" />
           </div>
           <div>
-            <h1 className="text-xl font-bold font-['Outfit'] text-white">
+            <h1 className="text-xl font-bold font-['Outfit'] text-slate-900 dark:text-white">
               Storage & Audit Analytics
             </h1>
-            <p className="text-xs text-zinc-400">
+            <p className="text-xs text-slate-500 dark:text-zinc-400">
               Inspect your cloud storage allocation and real-time security activity events
             </p>
           </div>
@@ -143,44 +143,44 @@ export default function StoragePage() {
         <button
           onClick={loadStorageData}
           title="Refresh analytics"
-          className="p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-zinc-400 hover:text-white border border-white/[0.08] transition-colors cursor-pointer"
+          className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 dark:bg-white/[0.04] dark:hover:bg-white/[0.08] text-slate-600 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white border border-slate-200/80 dark:border-white/[0.08] transition-colors cursor-pointer"
         >
-          <RefreshCw size={15} className={loading ? "animate-spin text-indigo-400" : ""} />
+          <RefreshCw size={15} className={loading ? "animate-spin text-indigo-500" : ""} />
         </button>
       </div>
 
       {loading ? (
-        <div className="flex flex-col items-center justify-center py-20 gap-3 text-zinc-500">
+        <div className="flex flex-col items-center justify-center py-20 gap-3 text-slate-400 dark:text-zinc-500">
           <div className="w-8 h-8 rounded-full border-2 border-indigo-500 border-t-transparent animate-spin" />
           <p className="text-xs font-medium">Analyzing storage distribution...</p>
         </div>
       ) : (
         <div className="flex flex-col gap-6">
           {/* Main Storage Allocation Hero Card */}
-          <div className="p-6 rounded-3xl bg-[#0c0f17]/90 border border-white/[0.08] shadow-2xl flex flex-col gap-5">
+          <div className="p-6 rounded-3xl bg-white dark:bg-[#0c0f17]/90 border border-slate-200/80 dark:border-white/[0.08] shadow-xs flex flex-col gap-5">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-zinc-400">
                   Total Allocated Quota
                 </span>
                 <div className="flex items-baseline gap-2 mt-1">
-                  <span className="text-3xl font-extrabold font-['Outfit'] text-white">
+                  <span className="text-3xl font-extrabold font-['Outfit'] text-slate-900 dark:text-white">
                     {formatBytes(used)}
                   </span>
-                  <span className="text-sm font-medium text-zinc-500">
+                  <span className="text-sm font-medium text-slate-500 dark:text-zinc-500">
                     / {formatBytes(limit)} (Free Tier)
                   </span>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 self-start sm:self-auto">
+              <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-2xl bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 text-indigo-700 dark:text-indigo-300 self-start sm:self-auto">
                 <span className="text-lg font-bold font-['Outfit']">{percent.toFixed(1)}%</span>
-                <span className="text-xs text-indigo-400 font-medium">used</span>
+                <span className="text-xs text-indigo-600 dark:text-indigo-400 font-medium">used</span>
               </div>
             </div>
 
             {/* Segmented Multi-Color Progress Bar */}
-            <div className="w-full bg-zinc-800/80 h-3 rounded-full overflow-hidden flex gap-0.5 p-0.5">
+            <div className="w-full bg-slate-200 dark:bg-zinc-800/80 h-3 rounded-full overflow-hidden flex gap-0.5 p-0.5">
               {summary?.categories &&
                 Object.entries(summary.categories).map(([catKey, data]) => {
                   const catSize = data.size || 0;
@@ -198,8 +198,8 @@ export default function StoragePage() {
                 })}
             </div>
 
-            <div className="flex items-center gap-2 text-xs text-zinc-400">
-              <ShieldCheck size={15} className="text-emerald-400 shrink-0" />
+            <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-zinc-400">
+              <ShieldCheck size={15} className="text-emerald-500 dark:text-emerald-400 shrink-0" />
               <span>Zero-knowledge client encrypted storage. Redundantly replicated in cloud buckets.</span>
             </div>
           </div>
@@ -217,21 +217,21 @@ export default function StoragePage() {
                 return (
                   <div
                     key={catKey}
-                    className="p-4 rounded-2xl bg-[#0c0f17]/90 border border-white/[0.06] flex flex-col gap-3 shadow-lg"
+                    className="p-4 rounded-2xl bg-white dark:bg-[#0c0f17]/90 border border-slate-200/80 dark:border-white/[0.06] flex flex-col gap-3 shadow-xs"
                   >
                     <div className="flex items-center justify-between">
-                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${meta.bg} ${meta.color} border border-white/5`}>
+                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${meta.bg} ${meta.color} border border-slate-200 dark:border-white/5`}>
                         <IconComponent size={18} />
                       </div>
-                      <span className="text-xs font-semibold text-zinc-400">{catPercent}%</span>
+                      <span className="text-xs font-semibold text-slate-500 dark:text-zinc-400">{catPercent}%</span>
                     </div>
 
                     <div>
-                      <h4 className="text-xs font-semibold text-zinc-200">{meta.label}</h4>
-                      <p className="text-base font-bold font-['Outfit'] text-white mt-0.5">
+                      <h4 className="text-xs font-semibold text-slate-800 dark:text-zinc-200">{meta.label}</h4>
+                      <p className="text-base font-bold font-['Outfit'] text-slate-900 dark:text-white mt-0.5">
                         {formatBytes(catSize)}
                       </p>
-                      <span className="text-[10px] text-zinc-500">{catCount} files</span>
+                      <span className="text-[10px] text-slate-400 dark:text-zinc-500">{catCount} files</span>
                     </div>
                   </div>
                 );
@@ -239,14 +239,14 @@ export default function StoragePage() {
           </div>
 
           {/* Security & Audit Activity Log */}
-          <div className="p-6 rounded-3xl bg-[#0c0f17]/90 border border-white/[0.08] shadow-2xl flex flex-col gap-4">
+          <div className="p-6 rounded-3xl bg-white dark:bg-[#0c0f17]/90 border border-slate-200/80 dark:border-white/[0.08] shadow-xs flex flex-col gap-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <Activity size={18} className="text-indigo-400" />
-                <h3 className="text-sm font-bold uppercase tracking-wider text-white">
+                <Activity size={18} className="text-indigo-600 dark:text-indigo-400" />
+                <h3 className="text-sm font-bold uppercase tracking-wider text-slate-900 dark:text-white">
                   Activity Audit Trail
                 </h3>
-                <span className="px-2 py-0.5 rounded-full text-[11px] font-medium bg-white/[0.06] text-zinc-400 border border-white/[0.08]">
+                <span className="px-2 py-0.5 rounded-full text-[11px] font-medium bg-slate-100 dark:bg-white/[0.06] text-slate-600 dark:text-zinc-400 border border-slate-200 dark:border-white/[0.08]">
                   {activityTotal} events
                 </span>
               </div>
@@ -254,7 +254,7 @@ export default function StoragePage() {
               {activities.length > 0 && (
                 <button
                   onClick={handleClearActivities}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.04] hover:bg-red-500/10 text-zinc-400 hover:text-red-400 border border-white/[0.06] hover:border-red-500/20 text-xs font-medium transition-all cursor-pointer"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-red-50 dark:bg-white/[0.04] dark:hover:bg-red-500/10 text-slate-600 hover:text-red-600 dark:text-zinc-400 dark:hover:text-red-400 border border-slate-200 dark:border-white/[0.06] hover:border-red-500/20 text-xs font-semibold transition-all cursor-pointer"
                 >
                   <Trash2 size={13} />
                   <span>Clear History</span>
@@ -271,28 +271,28 @@ export default function StoragePage() {
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
                   <thead>
-                    <tr className="border-b border-white/[0.06] text-zinc-500 uppercase tracking-wider text-[10px]">
+                    <tr className="border-b border-slate-200 dark:border-white/[0.06] text-slate-400 dark:text-zinc-500 uppercase tracking-wider text-[10px]">
                       <th className="py-2.5 px-3">Action</th>
                       <th className="py-2.5 px-3">Item / Description</th>
                       <th className="py-2.5 px-3">Timestamp</th>
                       <th className="py-2.5 px-3">Client IP</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-white/[0.04]">
+                  <tbody className="divide-y divide-slate-100 dark:divide-white/[0.04]">
                     {activities.map((act) => (
-                      <tr key={act._id} className="hover:bg-white/[0.02] transition-colors">
+                      <tr key={act._id} className="hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors">
                         <td className="py-2.5 px-3">
-                          <span className="inline-block px-2 py-0.5 rounded-md text-[10px] font-semibold uppercase tracking-wider bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                          <span className="inline-block px-2 py-0.5 rounded-md text-[10px] font-semibold uppercase tracking-wider bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/20">
                             {act.action.replace(/_/g, " ")}
                           </span>
                         </td>
-                        <td className="py-2.5 px-3 font-medium text-zinc-200">
+                        <td className="py-2.5 px-3 font-semibold text-slate-800 dark:text-zinc-200">
                           {act.itemName || act.details?.name || "--"}
                         </td>
-                        <td className="py-2.5 px-3 text-zinc-400">
+                        <td className="py-2.5 px-3 text-slate-500 dark:text-zinc-400">
                           {formatDate(act.createdAt)}
                         </td>
-                        <td className="py-2.5 px-3 font-mono text-zinc-500">
+                        <td className="py-2.5 px-3 font-mono text-slate-400 dark:text-zinc-500">
                           {act.ipAddress || "127.0.0.1"}
                         </td>
                       </tr>

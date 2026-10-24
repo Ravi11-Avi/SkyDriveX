@@ -97,12 +97,22 @@ const createShareLink = async (req, res, next) => {
       req,
     });
 
+    let directViewUrl = null;
+    if (itemType === "file" && targetItem) {
+      try {
+        directViewUrl = await getPresignedViewUrl(targetItem.s3Key, targetItem.mimeType, 86400);
+      } catch (e) {
+        // Direct view URL fallback
+      }
+    }
+
     res.status(201).json({
       success: true,
       message: "Share link created successfully",
       share: {
         ...share.toObject(),
         shareUrl: getShareUrl(shareToken),
+        directViewUrl,
       },
     });
   } catch (error) {
